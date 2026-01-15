@@ -82,23 +82,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildMockStatCard('Total Tugas', '12', Colors.blue),
-                  _buildMockStatCard('Selesai', '5', Colors.green),
-                  _buildMockStatCard('Berjalan', '4', Colors.amber),
-                  _buildMockStatCard('Belum Mulai', '3', Colors.red),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 24),
 
             Padding(
@@ -121,9 +104,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 24),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Jadwal Hari Ini',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(
+                    Icons.calendar_today,
+                    color: Colors.blue[600],
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+
+  String _getFormaltedDate() {
+    final now = DateTime.now();
+    final days = [
+      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+    ];
+    final months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
+  }  
 }
