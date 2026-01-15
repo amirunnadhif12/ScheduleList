@@ -45,7 +45,7 @@ function handleGet($conn) {
     } elseif (isset($_GET['date'])) {
         // Get schedules by date
         $date = $_GET['date'];
-        $stmt = $conn->prepare("SELECT * FROM schedules WHERE date = ? ORDER BY time ASC");
+        $stmt = $conn->prepare("SELECT * FROM schedules WHERE date = ? ORDER BY start_time ASC, end_time ASC");
         $stmt->bind_param("s", $date);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -59,7 +59,7 @@ function handleGet($conn) {
         $stmt->close();
     } else {
         // Get all schedules
-        $result = $conn->query("SELECT * FROM schedules ORDER BY date ASC, time ASC");
+        $result = $conn->query("SELECT * FROM schedules ORDER BY date ASC, start_time ASC, end_time ASC");
         
         $schedules = [];
         while ($row = $result->fetch_assoc()) {
@@ -74,19 +74,21 @@ function handleGet($conn) {
 function handlePost($conn) {
     $data = json_decode(file_get_contents("php://input"), true);
     
-    if (!isset($data['title']) || !isset($data['description']) || !isset($data['date']) || !isset($data['time'])) {
+    if (!isset($data['title']) || !isset($data['date']) || !isset($data['start_time']) || !isset($data['end_time']) || !isset($data['location'])) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Missing required fields']);
         return;
     }
     
-    $stmt = $conn->prepare("INSERT INTO schedules (title, description, date, time, location) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", 
+    $stmt = $conn->prepare("INSERT INTO schedules (title, description, date, start_time, end_time, location, color) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssss", 
         $data['title'], 
-        $data['description'], 
+        $data['description'] ?? '', 
         $data['date'], 
-        $data['time'],
-        $data['location'] ?? null
+        $data['start_time'],
+        $data['end_time'],
+        $data['location'],
+        $data['color'] ?? '#2563eb'
     );
     
     if ($stmt->execute()) {
@@ -94,10 +96,12 @@ function handlePost($conn) {
         $newSchedule = [
             'id' => $newId,
             'title' => $data['title'],
-            'description' => $data['description'],
+            'description' => $data['description'] ?? '',
             'date' => $data['date'],
-            'time' => $data['time'],
-            'location' => $data['location'] ?? null
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
+            'location' => $data['location'],
+            'color' => $data['color'] ?? '#2563eb'
         ];
         
         http_response_code(201);
@@ -114,19 +118,21 @@ function handlePost($conn) {
 function handlePut($conn) {
     $data = json_decode(file_get_contents("php://input"), true);
     
-    if (!isset($data['id'])) {
+    if (!isset($data['id']) || !isset($data['title']) || !isset($data['date']) || !isset($data['start_time']) || !isset($data['end_time']) || !isset($data['location'])) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing schedule ID']);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields']);
         return;
     }
     
-    $stmt = $conn->prepare("UPDATE schedules SET title = ?, description = ?, date = ?, time = ?, location = ? WHERE id = ?");
-    $stmt->bind_param("sssssi", 
+    $stmt = $conn->prepare("UPDATE schedules SET title = ?, description = ?, date = ?, start_time = ?, end_time = ?, location = ?, color = ? WHERE id = ?");
+    $stmt->bind_param("sssssssi", 
         $data['title'], 
-        $data['description'], 
+        $data['description'] ?? '', 
         $data['date'], 
-        $data['time'],
-        $data['location'] ?? null,
+        $data['start_time'],
+        $data['end_time'],
+        $data['location'],
+        $data['color'] ?? '#2563eb',
         $data['id']
     );
     
