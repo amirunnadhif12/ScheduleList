@@ -44,10 +44,16 @@ function handleGet($conn) {
         }
         $stmt->close();
     } elseif (isset($_GET['status'])) {
-        // Get tasks by status
-        $status = $_GET['status'] === 'completed' ? 1 : 0;
-        $stmt = $conn->prepare("SELECT * FROM tasks WHERE is_completed = ? ORDER BY deadline ASC");
-        $stmt->bind_param("i", $status);
+        // Get tasks by status (belum_mulai, berjalan, selesai)
+        $status = $_GET['status'];
+        $validStatuses = ['belum_mulai', 'berjalan', 'selesai'];
+        if (!in_array($status, $validStatuses)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid status']);
+            return;
+        }
+        $stmt = $conn->prepare("SELECT * FROM tasks WHERE status = ? ORDER BY deadline ASC");
+        $stmt->bind_param("s", $status);
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -60,10 +66,26 @@ function handleGet($conn) {
         echo json_encode(['success' => true, 'data' => $tasks]);
         $stmt->close();
     } elseif (isset($_GET['priority'])) {
-        // Get tasks by priority
+        // Get tasks by priority (rendah, sedang, tinggi)
         $priority = $_GET['priority'];
         $stmt = $conn->prepare("SELECT * FROM tasks WHERE priority = ? ORDER BY deadline ASC");
         $stmt->bind_param("s", $priority);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $tasks = [];
+        while ($row = $result->fetch_assoc()) {
+            $row['is_completed'] = (bool)$row['is_completed'];
+            $tasks[] = $row;
+        }
+        
+        echo json_encode(['success' => true, 'data' => $tasks]);
+        $stmt->close();
+    } elseif (isset($_GET['category'])) {
+        // Get tasks by category (mata kuliah)
+        $category = $_GET['category'];
+        $stmt = $conn->prepare("SELECT * FROM tasks WHERE category = ? ORDER BY deadline ASC");
+        $stmt->bind_param("s", $category);
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -109,21 +131,25 @@ function handleGet($conn) {
 function handlePost($conn) {
     $data = json_decode(file_get_contents("php://input"), true);
     
-    if (!isset($data['title']) || !isset($data['description']) || !isset($data['deadline']) || !isset($data['priority'])) {
+    if (!isset($data['title']) || !isset($data['category']) || !isset($data['deadline']) || !isset($data['priority'])) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields: title, category, deadline, priority']);
         return;
     }
     
-    $isCompleted = isset($data['is_completed']) && $data['is_completed'] ? 1 : 0;
+    $status = $data['status'] ?? 'belum_mulai';
+    $progress = isset($data['progress']) ? intval($data['progress']) : 0;
+    $progress = max(0, min(100, $progress)); // Ensure 0-100
     
-    $stmt = $conn->prepare("INSERT INTO tasks (title, description, deadline, priority, is_completed, image_path) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssis", 
+    $stmt = $conn->prepare("INSERT INTO tasks (title, category, description, deadline, priority, status, progress, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssssss", 
         $data['title'], 
-        $data['description'], 
+        $data['category'],
+        $data['description'] ?? '',
         $data['deadline'], 
         $data['priority'],
-        $isCompleted,
+        $status,
+        $progress,
         $data['image_path'] ?? null
     );
     
@@ -132,10 +158,12 @@ function handlePost($conn) {
         $newTask = [
             'id' => $newId,
             'title' => $data['title'],
-            'description' => $data['description'],
+            'category' => $data['category'],
+            'description' => $data['description'] ?? '',
             'deadline' => $data['deadline'],
             'priority' => $data['priority'],
-            'is_completed' => (bool)$isCompleted,
+            'status' => $status,
+            'progress' => $progress,
             'image_path' => $data['image_path'] ?? null
         ];
         
@@ -159,23 +187,28 @@ function handlePut($conn) {
         return;
     }
     
-    // Check if only toggling status
-    if (isset($data['toggle_status']) && $data['toggle_status']) {
-        $stmt = $conn->prepare("UPDATE tasks SET is_completed = NOT is_completed WHERE id = ?");
-        $stmt->bind_param("i", $data['id']);
-    } else {
-        $isCompleted = isset($data['is_completed']) && $data['is_completed'] ? 1 : 0;
-        $stmt = $conn->prepare("UPDATE tasks SET title = ?, description = ?, deadline = ?, priority = ?, is_completed = ?, image_path = ? WHERE id = ?");
-        $stmt->bind_param("ssssisi", 
-            $data['title'], 
-            $data['description'], 
-            $data['deadline'], 
-            $data['priority'],
-            $isCompleted,
-            $data['image_path'] ?? null,
-            $data['id']
-        );
+    if (!isset($data['title']) || !isset($data['category']) || !isset($data['deadline']) || !isset($data['priority'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields: title, category, deadline, priority']);
+        return;
     }
+    
+    $status = $data['status'] ?? 'belum_mulai';
+    $progress = isset($data['progress']) ? intval($data['progress']) : 0;
+    $progress = max(0, min(100, $progress)); // Ensure 0-100
+    
+    $stmt = $conn->prepare("UPDATE tasks SET title = ?, category = ?, description = ?, deadline = ?, priority = ?, status = ?, progress = ?, image_path = ? WHERE id = ?");
+    $stmt->bind_param("ssssssssi", 
+        $data['title'], 
+        $data['category'],
+        $data['description'] ?? '',
+        $data['deadline'], 
+        $data['priority'],
+        $status,
+        $progress,
+        $data['image_path'] ?? null,
+        $data['id']
+    );
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
