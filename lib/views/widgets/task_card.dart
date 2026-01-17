@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/task_model.dart';
 import '../../controller/task_controller.dart';
 
-class TaskCard {
+class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
