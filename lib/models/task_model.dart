@@ -9,7 +9,7 @@ class Task {
   final DateTime updatedAt;
 
   Task({
-    required this.id,
+    this.id,
     required this.title,
     required this.description,
     required this.subject,
