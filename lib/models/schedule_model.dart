@@ -11,7 +11,7 @@ class Schedule {
   final DateTime updatedAt;
 
   Schedule({
-    required this.id,
+    this.id,
     required this.date,
     required this.startTime,
     required this.endTime,
@@ -53,7 +53,7 @@ class Schedule {
     );
   }
 
-  Schedule copyWith([
+  Schedule copyWith({
     int? id,
     DateTime? date,
     String? startTime,
@@ -64,7 +64,7 @@ class Schedule {
     String? color,
     DateTime? createdAt,
     DateTime? updatedAt,
-  ]) {
+  }) {
     return Schedule(
       id: id ?? this.id,
       date: date ?? this.date,
