@@ -90,40 +90,39 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Column(
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 // Logo
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 200,
+                  height: 200,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: ClipOval(
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Image.asset(
-                        'assets/icon/Logo Schedule.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.calendar_today_rounded,
-                            size: 40,
-                            color: AppColors.primary,
-                          );
-                        },
-                      ),
+                    child: Image.asset(
+                      'assets/icon/Logo Schedule.png',
+                      width: 180,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.calendar_today_rounded,
+                          size: 80,
+                          color: AppColors.primary,
+                        );
+                      },
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 // Title
                 Text(
                   'Schedule-List',

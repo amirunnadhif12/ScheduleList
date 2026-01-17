@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
 import '../../models/task_model.dart';
 import '../../controller/task_controller.dart';
 import 'widgets/task_card.dart';
 import 'widgets/add_task_dialog.dart';
+import 'login.dart';
 
 class TaskScreen extends StatefulWidget {
-  const TaskScreen({super.key});
+  final String userName;
+
+  const TaskScreen({super.key, this.userName = 'User'});
 
   @override
   State<TaskScreen> createState() => _TaskScreenState();
@@ -18,70 +22,184 @@ class _TaskScreenState extends State<TaskScreen> {
 
   final List<String> _filters = ['Semua', 'Belum Mulai', 'Berjalan', 'Selesai'];
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginRegisterScreen(),
+                ),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Keluar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Header hijau sama dengan dashboard
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.primary, AppColors.primaryDark],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.28),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dastar Tugas',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '6 tugas total',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Image.asset(
+                      'assets/icon/Logo Schedule.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.calendar_today_rounded,
+                          color: AppColors.primary,
+                          size: 28,
+                        );
+                      },
+                    ),
                   ),
-                  FloatingActionButton.extended(
-                    onPressed: () {
-                      _showAddTaskDialog(context);
-                    },
-                    label: const Text('Tambah'),
-                    icon: const Icon(Icons.add),
-                  ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Schedule-List',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Halo, ${widget.userName}! 👋',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => _showLogoutDialog(context),
+                icon: const Icon(Icons.logout, color: Colors.white),
               ),
             ],
           ),
         ),
 
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Cari tugas...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+        // Section Daftar Tugas dengan tombol Tambah
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Daftar Tugas',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  FutureBuilder<List<Task>>(
+                    future: _taskController.getAllTasks(),
+                    builder: (context, snapshot) {
+                      final count =
+                          snapshot.data
+                              ?.where((t) => t.status != 'Selesai')
+                              .length ??
+                          0;
+                      return Text(
+                        '$count tugas aktif',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.text.withOpacity(0.6),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
+              ElevatedButton.icon(
+                onPressed: () {
+                  _showAddTaskDialog(context);
+                },
+                icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                label: const Text(
+                  'Tambah',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
+            ],
           ),
         ),
+
+        // Filter chips
         SizedBox(
-          height: 50,
+          height: 40,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -100,10 +218,15 @@ class _TaskScreenState extends State<TaskScreen> {
                       _selectedFilter = filter;
                     });
                   },
-                  backgroundColor: Colors.grey[100],
-                  selectedColor: Colors.blue[600],
+                  backgroundColor: Colors.white,
+                  selectedColor: AppColors.primary,
+                  side: BorderSide(
+                    color: isSelected
+                        ? AppColors.primary
+                        : Colors.grey.shade300,
+                  ),
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
+                    color: isSelected ? Colors.white : AppColors.text,
                     fontWeight: isSelected
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -116,7 +239,36 @@ class _TaskScreenState extends State<TaskScreen> {
 
         const SizedBox(height: 8),
 
-        // Tasks list
+        // Search field
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: 'Cari tugas...',
+              hintStyle: TextStyle(color: AppColors.text.withOpacity(0.4)),
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.text.withOpacity(0.5),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
+        ),
+
         Expanded(
           child: FutureBuilder<List<Task>>(
             future: _getFilteredTasks(),
@@ -133,9 +285,30 @@ class _TaskScreenState extends State<TaskScreen> {
 
               if (tasks.isEmpty) {
                 return Center(
-                  child: Text(
-                    'Tidak ada tugas',
-                    style: TextStyle(color: Colors.grey[600]),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.check_box_outlined,
+                          size: 48,
+                          color: AppColors.text.withOpacity(0.3),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Tidak ada tugas',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.text.withOpacity(0.65),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }
@@ -180,7 +353,6 @@ class _TaskScreenState extends State<TaskScreen> {
       tasks = await _taskController.getTasksByStatus(_selectedFilter);
     }
 
-    // Filter by search query
     if (_searchQuery.isNotEmpty) {
       tasks = tasks
           .where(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
 import '../../models/task_model.dart';
 import '../../models/schedule_model.dart';
 import '../../controller/task_controller.dart';
@@ -6,9 +7,12 @@ import '../../controller/schedule_controller.dart';
 import 'widgets/stats_card.dart';
 import 'widgets/task_card.dart';
 import 'widgets/schedule_card.dart';
+import 'login.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final String userName;
+
+  const DashboardScreen({super.key, this.userName = 'User'});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -26,18 +30,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadDashboardData();
   }
 
-  void _loaddashboardData() {
+  void _loadDashboardData() {
     if (mounted) {
       setState(() {
-        _dashboardData = Future.wait([
-          _taskController.getTaskStatistics(),
-          _taskController.getUpcomingDeadlines(days: 7),
-          _scheduleController.getSchedulesByDate(DateTime.now()),
-        ]).then((results) => {
-          'stats': results[0],
-          'upcomingTasks': results[1],
-          'todaySchedules': results[2],
-        });
+        _dashboardData =
+            Future.wait([
+              _taskController.getTaskStatistics(),
+              _taskController.getUpcomingDeadlines(days: 7),
+              _scheduleController.getSchedulesByDate(DateTime.now()),
+            ]).then(
+              (results) => {
+                'stats': results[0],
+                'upcomingTasks': results[1],
+                'todaySchedules': results[2],
+              },
+            );
       });
     }
   }
@@ -45,13 +52,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _getFormaltedDate() {
     final now = DateTime.now();
     final days = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
     ];
     final months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
     return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]} ${now.year}';
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginRegisterScreen(),
+                ),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Keluar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -63,23 +116,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       },
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),,
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Colors.blue[600]!,
-                    Colors.blue[800]!,
-                  ],
+                  colors: [AppColors.primary, AppColors.primaryDark],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue[600]!.withOpacity(0.3),
+                    color: AppColors.primary.withOpacity(0.28),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -88,22 +139,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Schedule-List',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Kelola jadwal & tugas Anda dengan elegan',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.blue[100],
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Image.asset(
+                              'assets/icon/Logo Schedule.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.calendar_today_rounded,
+                                  color: AppColors.primary,
+                                  size: 28,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Schedule-List',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Halo, ${widget.userName}! 👋',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _showLogoutDialog(context),
+                        icon: const Icon(Icons.logout, color: Colors.white),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -114,19 +210,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Selamat Datang! 👋',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _getFormaltedDate(),
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: AppColors.text.withOpacity(0.65),
                     ),
                   ),
                 ],
@@ -150,14 +243,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: AppColors.overdue.withOpacity(0.9),
+                          ),
                           const SizedBox(height: 8),
                           const Text('Error loading data'),
                           const SizedBox(height: 8),
                           Text(
                             snapshot.error.toString(),
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.text.withOpacity(0.65),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
@@ -189,29 +289,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       StatsCard(
                         label: 'Total Tugas',
                         count: stats['total'] ?? 0,
-                        backgroundColor: Colors.blue[50]!,
-                        textColor: Colors.blue[600]!,
+                        backgroundColor: AppColors.primaryLight(0.12),
+                        textColor: AppColors.primary,
                         icon: Icons.check_circle,
                       ),
                       StatsCard(
                         label: 'Selesai',
                         count: stats['selesai'] ?? 0,
-                        backgroundColor: Colors.green[50]!,
-                        textColor: Colors.green[600]!,
+                        backgroundColor: AppColors.successLight(),
+                        textColor: AppColors.success,
                         icon: Icons.verified,
                       ),
                       StatsCard(
                         label: 'Berjalan',
                         count: stats['berjalan'] ?? 0,
-                        backgroundColor: Colors.amber[50]!,
-                        textColor: Colors.amber[700]!,
+                        backgroundColor: AppColors.accentLight(),
+                        textColor: AppColors.accent,
                         icon: Icons.schedule,
                       ),
                       StatsCard(
                         label: 'Belum Mulai',
                         count: stats['belumMulai'] ?? 0,
-                        backgroundColor: Colors.red[50]!,
-                        textColor: Colors.red[600]!,
+                        backgroundColor: AppColors.overdueLight(),
+                        textColor: AppColors.overdue,
                         icon: Icons.warning,
                       ),
                     ],
@@ -229,14 +329,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Text(
                     'Tugas Mendekati Deadline',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Icon(
                     Icons.warning_rounded,
-                    color: Colors.orange[600],
+                    color: AppColors.accent,
                     size: 20,
                   ),
                 ],
@@ -263,7 +360,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Center(
                       child: Text(
                         'Tidak ada tugas yang mendekati deadline',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: AppColors.text.withOpacity(0.6),
+                        ),
                       ),
                     ),
                   );
@@ -291,14 +390,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Text(
                     'Jadwal Hari Ini',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Icon(
                     Icons.calendar_today,
-                    color: Colors.blue[600],
+                    color: AppColors.primary,
                     size: 20,
                   ),
                 ],
@@ -325,7 +421,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Center(
                       child: Text(
                         'Tidak ada jadwal untuk hari ini',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: AppColors.text.withOpacity(0.6),
+                        ),
                       ),
                     ),
                   );
@@ -333,11 +431,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 return Column(
                   children: schedules
-                      .map((schedule) => ScheduleCard(
-                            schedule: schedule,
-                            onEdit: () {},
-                            onDelete: () {},
-                          ))
+                      .map(
+                        (schedule) => ScheduleCard(
+                          schedule: schedule,
+                          onEdit: () {},
+                          onDelete: () {},
+                        ),
+                      )
                       .toList(),
                 );
               },
