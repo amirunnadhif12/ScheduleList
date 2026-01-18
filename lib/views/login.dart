@@ -169,7 +169,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   ),
                   child: ClipOval(
                     child: Image.asset(
-                      'assets/icon/Logo Schedule.png',
+                      'assets/icon/logo_schedule.png',
                       width: 180,
                       height: 180,
                       fit: BoxFit.cover,

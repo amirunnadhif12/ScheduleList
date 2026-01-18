@@ -136,7 +136,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Image.asset(
-                      'assets/icon/Logo Schedule.png',
+                      'assets/icon/logo_schedule.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
