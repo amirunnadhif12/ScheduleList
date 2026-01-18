@@ -39,19 +39,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _loadDashboardData() {
     if (mounted) {
       setState(() {
-        _dashboardData =
-            Future.wait([
-              _taskController.getTaskStatistics(),
-              _taskController.getUpcomingDeadlines(days: 7),
-              _scheduleController.getSchedulesByDate(DateTime.now()),
-            ]).then(
-              (results) => {
-                'stats': results[0],
-                'upcomingTasks': results[1],
-                'todaySchedules': results[2],
-              },
-            );
+        _dashboardData = _fetchDashboardData();
       });
+    }
+  }
+
+  Future<Map<String, dynamic>> _fetchDashboardData() async {
+    try {
+      final results = await Future.wait([
+        _taskController.getTaskStatistics().catchError((e) => <String, int>{
+          'total': 0,
+          'selesai': 0,
+          'berjalan': 0,
+          'belumMulai': 0,
+        }),
+        _taskController.getUpcomingDeadlines(days: 7).catchError((e) => <Task>[]),
+        _scheduleController.getSchedulesByDate(DateTime.now()).catchError((e) => <Schedule>[]),
+      ]);
+      return {
+        'stats': results[0],
+        'upcomingTasks': results[1],
+        'todaySchedules': results[2],
+      };
+    } catch (e) {
+      return {
+        'stats': <String, int>{
+          'total': 0,
+          'selesai': 0,
+          'berjalan': 0,
+          'belumMulai': 0,
+        },
+        'upcomingTasks': <Task>[],
+        'todaySchedules': <Schedule>[],
+      };
     }
   }
 

@@ -56,7 +56,6 @@ class _TaskScreenState extends State<TaskScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Header hijau sama dengan dashboard
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -138,7 +137,6 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
         ),
 
-        // Section Daftar Tugas dengan tombol Tambah
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
@@ -197,7 +195,6 @@ class _TaskScreenState extends State<TaskScreen> {
           ),
         ),
 
-        // Filter chips
         SizedBox(
           height: 40,
           child: ListView.builder(
@@ -239,7 +236,6 @@ class _TaskScreenState extends State<TaskScreen> {
 
         const SizedBox(height: 8),
 
-        // Search field
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: TextField(
