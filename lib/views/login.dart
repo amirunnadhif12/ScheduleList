@@ -91,7 +91,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 32),
-                // Logo
                 Container(
                   width: 200,
                   height: 200,
@@ -123,7 +122,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Title
                 Text(
                   'Schedule-List',
                   style: TextStyle(
@@ -142,7 +140,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Segmented tabs
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
@@ -160,7 +157,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
 
                 const SizedBox(height: 28),
 
-                // Form fields
                 if (!isLogin) ...[
                   _buildLabel('Nama Lengkap'),
                   const SizedBox(height: 8),
@@ -207,7 +203,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
 
                 const SizedBox(height: 24),
 
-                // Submit button
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -238,7 +233,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
 
                 const SizedBox(height: 20),
 
-                // Toggle link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

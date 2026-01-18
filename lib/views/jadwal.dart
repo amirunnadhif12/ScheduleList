@@ -100,7 +100,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     return Column(
       children: [
-        // Header hijau sama dengan dashboard
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -183,7 +182,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
 
-        // Section Jadwal Harian dengan tombol Tambah
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
