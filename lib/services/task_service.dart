@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/task.dart';
@@ -21,7 +22,11 @@ class TaskService {
         final data = json.decode(response.body);
         if (data['success'] == true) {
           List<Task> tasks = (data['data'] as List)
-              .map((json) => Task.fromMap(json))
+              .map((json) {
+                // Debug logging
+                print('Task data from API: $json');
+                return Task.fromMap(json);
+              })
               .toList();
           return tasks;
         }
@@ -41,6 +46,7 @@ class TaskService {
         return [];
       }
 
+      // Backend menggunakan status: 'belum_mulai', 'berjalan', 'selesai'
       String status = isCompleted ? 'selesai' : 'belum_mulai';
       final response = await http.get(
         Uri.parse('${ApiConfig.tasksEndpoint}?user_id=$userId&status=$status'),
@@ -58,6 +64,34 @@ class TaskService {
       return [];
     } catch (e) {
       print('Error in getTasksByStatus: $e');
+      return [];
+    }
+  }
+
+  // Get tasks by status string (belum_mulai, berjalan, selesai)
+  Future<List<Task>> getTasksByStatusString(String status) async {
+    try {
+      final userId = UserSession().userId;
+      if (userId == null) {
+        return [];
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.tasksEndpoint}?user_id=$userId&status=$status'),
+      ).timeout(ApiConfig.timeoutDuration);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success']) {
+          List<Task> tasks = (data['data'] as List)
+              .map((json) => Task.fromMap(json))
+              .toList();
+          return tasks;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error in getTasksByStatusString: $e');
       return [];
     }
   }
@@ -207,6 +241,29 @@ class TaskService {
       return false;
     } catch (e) {
       throw Exception('Error: $e');
+    }
+  }
+
+  // Upload task image (camera/gallery)
+  Future<String?> uploadTaskImage(String filePath) async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/upload/upload.php');
+      final request = http.MultipartRequest('POST', uri);
+      request.files.add(await http.MultipartFile.fromPath('image', filePath));
+
+      final streamed = await request.send().timeout(ApiConfig.timeoutDuration);
+      final response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return data['data']['url'] as String?;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error uploading task image: $e');
+      return null;
     }
   }
 }

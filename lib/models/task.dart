@@ -8,6 +8,8 @@ class Task {
   final bool isCompleted;
   final String? imagePath; // Path untuk foto tugas (P1)
   final DateTime createdAt;
+  final String? status; // Status dari backend: belum_mulai, berjalan, selesai
+  final int progress; // Progress 0-100
 
   Task({
     this.id,
@@ -19,6 +21,8 @@ class Task {
     this.isCompleted = false,
     this.imagePath,
     DateTime? createdAt,
+    this.status,
+    this.progress = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   // Convert Task object to Map untuk database
@@ -30,23 +34,51 @@ class Task {
       'subject': subject, // Backend uses 'subject' field
       'deadline': deadline,
       'priority': priority,
-      'status': isCompleted ? 'selesai' : 'belum_mulai', // Backend uses status enum
-      'progress': isCompleted ? 100 : 0,
+      'status': status ?? (isCompleted ? 'selesai' : 'belum_mulai'), // Backend uses status enum
+      'progress': progress,
+      'image_path': imagePath,
     };
   }
 
   // Convert Map dari database to Task object
   factory Task.fromMap(Map<String, dynamic> map) {
     // Support both field name variations
+    String statusValue = '';
     bool completed = false;
+    
     if (map.containsKey('status')) {
-      completed = map['status'] == 'selesai';
+      // Status dari backend: 'belum_mulai', 'berjalan', 'selesai'
+      statusValue = map['status'] ?? 'belum_mulai';
+      completed = statusValue == 'selesai';
     } else if (map.containsKey('isCompleted')) {
       completed = map['isCompleted'] == 1;
+      statusValue = completed ? 'selesai' : 'belum_mulai';
+    }
+
+    // Parse progress - bisa string atau int dari backend
+    int progressValue = 0;
+    if (map['progress'] != null) {
+      if (map['progress'] is int) {
+        progressValue = map['progress'];
+      } else if (map['progress'] is String) {
+        progressValue = int.tryParse(map['progress']) ?? 0;
+      }
+    } else {
+      progressValue = completed ? 100 : 0;
+    }
+
+    // Parse id - bisa string atau int dari backend
+    int? idValue;
+    if (map['id'] != null) {
+      if (map['id'] is int) {
+        idValue = map['id'];
+      } else if (map['id'] is String) {
+        idValue = int.tryParse(map['id']);
+      }
     }
 
     return Task(
-      id: map['id'],
+      id: idValue,
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       subject: map['subject'] ?? '',
@@ -54,6 +86,8 @@ class Task {
       priority: map['priority'] ?? 'sedang',
       isCompleted: completed,
       imagePath: map['imagePath'] ?? map['image_path'],
+      status: statusValue,
+      progress: progressValue,
       createdAt: map['created_at'] != null 
           ? DateTime.parse(map['created_at']) 
           : (map['createdAt'] != null ? DateTime.parse(map['createdAt']) : DateTime.now()),
@@ -71,6 +105,8 @@ class Task {
     bool? isCompleted,
     String? imagePath,
     DateTime? createdAt,
+    String? status,
+    int? progress,
   }) {
     return Task(
       id: id ?? this.id,
@@ -82,6 +118,8 @@ class Task {
       isCompleted: isCompleted ?? this.isCompleted,
       imagePath: imagePath ?? this.imagePath,
       createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+      progress: progress ?? this.progress,
     );
   }
 

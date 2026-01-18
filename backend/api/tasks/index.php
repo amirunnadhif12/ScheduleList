@@ -124,10 +124,11 @@ function handlePost($conn) {
     $status = $data['status'] ?? 'belum_mulai';
     $priority = $data['priority'] ?? 'sedang';
     $progress = isset($data['progress']) ? intval($data['progress']) : 0;
+    $image_path = $data['image_path'] ?? null;
     $progress = max(0, min(100, $progress)); // Ensure 0-100
     
-    $stmt = $conn->prepare("INSERT INTO tasks (user_id, title, description, subject, deadline, status, priority, progress) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issssssi", $user_id, $title, $description, $subject, $deadline, $status, $priority, $progress);
+    $stmt = $conn->prepare("INSERT INTO tasks (user_id, title, description, subject, deadline, status, priority, progress, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssssis", $user_id, $title, $description, $subject, $deadline, $status, $priority, $progress, $image_path);
     
     if ($stmt->execute()) {
         $newId = $conn->insert_id;
@@ -140,7 +141,8 @@ function handlePost($conn) {
             'deadline' => $deadline,
             'status' => $status,
             'priority' => $priority,
-            'progress' => $progress
+            'progress' => $progress,
+            'image_path' => $image_path
         ];
         
         http_response_code(201);
@@ -171,6 +173,7 @@ function handlePut($conn) {
     $status = $data['status'] ?? null;
     $priority = $data['priority'] ?? null;
     $progress = isset($data['progress']) ? intval($data['progress']) : null;
+    $image_path = $data['image_path'] ?? null;
     
     if ($progress !== null) {
         $progress = max(0, min(100, $progress)); // Ensure 0-100
@@ -187,6 +190,7 @@ function handlePut($conn) {
     if ($status !== null) { $updateFields[] = 'status = ?'; $types .= 's'; $params[] = $status; }
     if ($priority !== null) { $updateFields[] = 'priority = ?'; $types .= 's'; $params[] = $priority; }
     if ($progress !== null) { $updateFields[] = 'progress = ?'; $types .= 'i'; $params[] = $progress; }
+    if ($image_path !== null) { $updateFields[] = 'image_path = ?'; $types .= 's'; $params[] = $image_path; }
     
     if (empty($updateFields)) {
         http_response_code(400);

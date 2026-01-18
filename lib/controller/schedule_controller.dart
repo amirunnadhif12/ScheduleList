@@ -123,11 +123,11 @@ class ScheduleController {
       id: apiSchedule.id,
       date: date,
       startTime: apiSchedule.time,
-      endTime: _calculateEndTime(apiSchedule.time),
+      endTime: apiSchedule.endTime ?? _calculateEndTime(apiSchedule.time),
       activity: apiSchedule.title,
       location: apiSchedule.location ?? '',
       description: apiSchedule.description,
-      color: 'blue',
+      color: apiSchedule.color ?? '#0F766E',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -199,7 +199,9 @@ class ScheduleController {
       description: description,
       date: dateString,
       time: startTime,
+      endTime: endTime,
       location: location.isEmpty ? null : location,
+      color: color,
     );
 
     return await _apiController.addSchedule(newSchedule);

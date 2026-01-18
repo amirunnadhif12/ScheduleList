@@ -20,6 +20,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   String _selectedPriority = 'Sedang';
   String _selectedStatus = 'Belum Mulai';
   DateTime _selectedDate = DateTime.now();
+  int _selectedProgress = 0;
 
   final List<String> _priorities = ['Rendah', 'Sedang', 'Tinggi'];
   final List<String> _statuses = ['Belum Mulai', 'Berjalan', 'Selesai'];
@@ -37,6 +38,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
           '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
     );
     _selectedStatus = widget.task?.status ?? 'Belum Mulai';
+    _selectedProgress = widget.task?.progress ?? 0;
   }
 
   @override
@@ -302,6 +304,48 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+
+              // Progress slider untuk status Berjalan
+              if (_selectedStatus == 'Berjalan')
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Progress',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          '$_selectedProgress%',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Slider(
+                      value: _selectedProgress.toDouble(),
+                      min: 0,
+                      max: 100,
+                      divisions: 10,
+                      label: '$_selectedProgress%',
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedProgress = value.toInt();
+                        });
+                      },
+                    ),
+                  ],
+                ),
               const SizedBox(height: 24),
 
               Row(
@@ -329,6 +373,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                             description: _descriptionController.text,
                             dueDate: _selectedDate,
                             status: _selectedStatus,
+                            progress: _selectedProgress,
                           );
                           await taskController.updateTask(updatedTask);
                         } else {

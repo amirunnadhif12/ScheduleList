@@ -13,8 +13,25 @@ class ScheduleCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  Color _getColorFromName(String colorName) {
-    switch (colorName.toLowerCase()) {
+  Color _getColorFromName(String? colorInput) {
+    if (colorInput == null || colorInput.isEmpty) {
+      return Colors.grey[50]!;
+    }
+
+    // If it's a hex color, parse it
+    if (colorInput.startsWith('#')) {
+      try {
+        final hexColor = colorInput.replaceFirst('#', '0xFF');
+        final color = Color(int.parse(hexColor));
+        // Return a lighter version for the background
+        return color.withOpacity(0.15);
+      } catch (e) {
+        return Colors.grey[50]!;
+      }
+    }
+
+    // Otherwise, use color name matching
+    switch (colorInput.toLowerCase()) {
       case 'blue':
         return Colors.blue[50]!;
       case 'green':
@@ -30,8 +47,23 @@ class ScheduleCard extends StatelessWidget {
     }
   }
 
-  Color _getBorderColorFromName(String colorName) {
-    switch (colorName.toLowerCase()) {
+  Color _getBorderColorFromName(String? colorInput) {
+    if (colorInput == null || colorInput.isEmpty) {
+      return Colors.grey[300]!;
+    }
+
+    // If it's a hex color, parse it
+    if (colorInput.startsWith('#')) {
+      try {
+        final hexColor = colorInput.replaceFirst('#', '0xFF');
+        return Color(int.parse(hexColor));
+      } catch (e) {
+        return Colors.grey[300]!;
+      }
+    }
+
+    // Otherwise, use color name matching
+    switch (colorInput.toLowerCase()) {
       case 'blue':
         return Colors.blue[300]!;
       case 'green':

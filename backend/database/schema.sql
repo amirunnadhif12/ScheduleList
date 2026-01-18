@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status ENUM('belum_mulai','berjalan','selesai') NOT NULL DEFAULT 'belum_mulai',
     priority VARCHAR(50) NOT NULL DEFAULT 'sedang',
     progress TINYINT UNSIGNED NOT NULL DEFAULT 0 CHECK (progress <= 100),
+    image_path VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
