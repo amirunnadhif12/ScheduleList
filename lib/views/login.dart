@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
 import '../theme.dart';
+import '../services/auth_service.dart';
+import '../services/user_session.dart';
+import 'dashboard.dart';
 
 class LoginRegisterScreen extends StatefulWidget {
   const LoginRegisterScreen({super.key});
@@ -11,21 +13,23 @@ class LoginRegisterScreen extends StatefulWidget {
 
 class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
   bool isLogin = true;
+  bool isLoading = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
 
-  final Map<String, Map<String, String>> _registeredUsers = {};
-
   void _toggleView() {
     setState(() {
       isLogin = !isLogin;
+      _emailController.clear();
+      _passwordController.clear();
+      _nameController.clear();
     });
   }
 
-  void _login() {
-    final email = _emailController.text;
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
@@ -35,29 +39,61 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       return;
     }
 
-    if (_registeredUsers.containsKey(email) &&
-        _registeredUsers[email]!['password'] == password) {
-      final userName = _registeredUsers[email]!['name'] ?? '';
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage(userName: userName)),
+    setState(() => isLoading = true);
+
+    try {
+      final result = await AuthService.login(
+        email: email,
+        password: password,
       );
-    } else {
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        final userName = result['user']['name'] ?? '';
+        final userId = result['user']['id'];
+        final userEmail = result['user']['email'] ?? '';
+        
+        // Save user session
+        UserSession().login(
+          userId: userId,
+          userName: userName,
+          userEmail: userEmail,
+        );
+        
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(
+              userName: userName,
+              userId: userId,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Login gagal')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email atau password salah!')),
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
       );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
-  void _register() {
-    final name = _nameController.text;
-    final email = _emailController.text;
+  Future<void> _register() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Semua kolom harus diisi!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua kolom harus diisi!')),
+      );
       return;
     }
 
@@ -68,16 +104,42 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       return;
     }
 
-    _registeredUsers[email] = {'name': name, 'password': password};
+    setState(() => isLoading = true);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pendaftaran berhasil! Silakan login.')),
-    );
+    try {
+      final result = await AuthService.register(
+        name: name,
+        email: email,
+        password: password,
+      );
 
-    _emailController.clear();
-    _passwordController.clear();
-    _nameController.clear();
-    _toggleView();
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pendaftaran berhasil! Silakan login.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        _emailController.clear();
+        _passwordController.clear();
+        _nameController.clear();
+        setState(() => isLogin = true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Pendaftaran gagal')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -107,7 +169,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   ),
                   child: ClipOval(
                     child: Image.asset(
-                      'assets/icon/Logo Schedule.png',
+                      'assets/icon/logo_schedule.png',
                       width: 180,
                       height: 180,
                       fit: BoxFit.cover,
@@ -207,14 +269,27 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: isLogin ? _login : _register,
-                    icon: Icon(
-                      isLogin ? Icons.login : Icons.person_add,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    onPressed: isLoading
+                        ? null
+                        : (isLogin ? _login : _register),
+                    icon: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Icon(
+                            isLogin ? Icons.login : Icons.person_add,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                     label: Text(
-                      isLogin ? 'Masuk' : 'Daftar Sekarang',
+                      isLoading
+                          ? 'Memproses...'
+                          : (isLogin ? 'Masuk' : 'Daftar Sekarang'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -227,6 +302,8 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       elevation: 0,
+                      disabledBackgroundColor:
+                          AppColors.primary.withOpacity(0.6),
                     ),
                   ),
                 ),

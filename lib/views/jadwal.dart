@@ -136,7 +136,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Image.asset(
-                      'assets/icon/Logo Schedule.png',
+                      'assets/icon/logo_schedule.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
@@ -401,8 +401,56 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           .map(
                             (schedule) => ScheduleCard(
                               schedule: schedule,
-                              onEdit: () {},
-                              onDelete: () {},
+                              onEdit: () async {
+                                final result = await showDialog(
+                                  context: context,
+                                  builder: (context) => AddScheduleDialog(
+                                    schedule: schedule,
+                                  ),
+                                );
+                                if (result == true) {
+                                  setState(() {});
+                                }
+                              },
+                              onDelete: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Hapus Jadwal'),
+                                    content: const Text(
+                                      'Apakah Anda yakin ingin menghapus jadwal ini?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text('Batal'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                        ),
+                                        child: const Text(
+                                          'Hapus',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                
+                                if (confirm == true && schedule.id != null) {
+                                  final success = await _scheduleController.deleteSchedule(schedule.id!);
+                                  if (success && mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Jadwal berhasil dihapus'),
+                                      ),
+                                    );
+                                    setState(() {});
+                                  }
+                                }
+                              },
                             ),
                           )
                           .toList(),

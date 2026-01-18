@@ -188,6 +188,10 @@ class TaskControllerAPI extends ChangeNotifier {
       'critical': criticalTasks.length,
     };
   }
+
+  Future<String?> uploadTaskImage(String filePath) async {
+    return await _service.uploadTaskImage(filePath);
+  }
 }
 
 // ============================================================================
@@ -204,18 +208,30 @@ class TaskController {
       dueDate = DateTime.now();
     }
 
+    // Konversi status dari API (belum_mulai, berjalan, selesai) ke UI (Belum Mulai, Berjalan, Selesai)
     String status = 'Belum Mulai';
-    if (apiTask.isCompleted) {
+    if (apiTask.isCompleted || apiTask.status == 'selesai') {
       status = 'Selesai';
+    } else if (apiTask.status == 'berjalan' || (apiTask.progress > 0 && apiTask.progress < 100)) {
+      status = 'Berjalan';
+    } else {
+      status = 'Belum Mulai';
     }
+
+    // Debug logging
+    debugPrint('Converting task: ${apiTask.title}');
+    debugPrint('  API status: ${apiTask.status}, progress: ${apiTask.progress}');
+    debugPrint('  UI status: $status');
 
     return task_model.Task(
       id: apiTask.id,
       title: apiTask.title,
       description: apiTask.description,
-      subject: '',
+      subject: apiTask.subject,
       dueDate: dueDate,
       status: status,
+      imagePath: apiTask.imagePath,
+      progress: apiTask.progress,
       createdAt: apiTask.createdAt,
       updatedAt: DateTime.now(),
     );
@@ -226,14 +242,38 @@ class TaskController {
         '${viewTask.dueDate.month.toString().padLeft(2, '0')}-'
         '${viewTask.dueDate.day.toString().padLeft(2, '0')} 23:59';
 
+    // Konversi status dari UI ke API
+    String apiStatus = 'belum_mulai';
+    int progress = 0;
+    bool isCompleted = false;
+    
+    if (viewTask.status == 'Selesai') {
+      apiStatus = 'selesai';
+      progress = 100;
+      isCompleted = true;
+    } else if (viewTask.status == 'Berjalan') {
+      apiStatus = 'berjalan';
+      // Gunakan progress dari viewTask, atau default 50 jika 0
+      progress = viewTask.progress > 0 ? viewTask.progress : 50;
+      isCompleted = false;
+    } else {
+      apiStatus = 'belum_mulai';
+      progress = 0;
+      isCompleted = false;
+    }
+
     return Task(
       id: viewTask.id,
       title: viewTask.title,
       description: viewTask.description,
+      subject: viewTask.subject,
       deadline: deadlineString,
       priority: 'Important P1',
-      isCompleted: viewTask.status == 'Selesai',
+      isCompleted: isCompleted,
       createdAt: viewTask.createdAt,
+      imagePath: viewTask.imagePath,
+      status: apiStatus,
+      progress: progress,
     );
   }
 
@@ -245,13 +285,18 @@ class TaskController {
   Future<List<task_model.Task>> getTasksByStatus(String status) async {
     await _apiController.loadTasks();
     
+    List<task_model.Task> convertedTasks = _apiController.tasks.map((t) => _convertFromApi(t)).toList();
+    
     if (status == 'Selesai') {
-      return _apiController.completedTasks.map((t) => _convertFromApi(t)).toList();
-    } else if (status == 'Belum Mulai' || status == 'Berjalan') {
-      return _apiController.activeTasks.map((t) => _convertFromApi(t)).toList();
+      return convertedTasks.where((t) => t.status == 'Selesai').toList();
+    } else if (status == 'Belum Mulai') {
+      return convertedTasks.where((t) => t.status == 'Belum Mulai').toList();
+    } else if (status == 'Berjalan') {
+      return convertedTasks.where((t) => t.status == 'Berjalan').toList();
     }
     
-    return _apiController.tasks.map((t) => _convertFromApi(t)).toList();
+    // Jika tidak cocok, return semua
+    return convertedTasks;
   }
 
   Future<bool> addTask({
@@ -265,12 +310,34 @@ class TaskController {
         '${dueDate.month.toString().padLeft(2, '0')}-'
         '${dueDate.day.toString().padLeft(2, '0')} 23:59';
 
+    // Konversi status UI ke API
+    String apiStatus = 'belum_mulai';
+    int progress = 0;
+    bool isCompleted = false;
+    
+    if (status == 'Selesai') {
+      apiStatus = 'selesai';
+      progress = 100;
+      isCompleted = true;
+    } else if (status == 'Berjalan') {
+      apiStatus = 'berjalan';
+      progress = 50;
+      isCompleted = false;
+    } else {
+      apiStatus = 'belum_mulai';
+      progress = 0;
+      isCompleted = false;
+    }
+
     final newTask = Task(
       title: title,
       description: description,
+      subject: subject,
       deadline: deadlineString,
       priority: 'Important P1',
-      isCompleted: status == 'Selesai',
+      isCompleted: isCompleted,
+      status: apiStatus,
+      progress: progress,
     );
 
     return await _apiController.addTask(newTask);
@@ -285,26 +352,58 @@ class TaskController {
     return await _apiController.deleteTask(id);
   }
 
-  Future<bool> updateTaskStatus(int id, String status) async {
+  Future<bool> updateTaskStatus(int id, String status, {String? imagePath}) async {
     await _apiController.loadTasks();
     final task = _apiController.tasks.firstWhere((t) => t.id == id);
     
+    // Konversi status UI ke status API
+    String apiStatus = 'belum_mulai';
+    int progress = 0;
+    bool isCompleted = false;
+    
+    if (status == 'Selesai') {
+      apiStatus = 'selesai';
+      progress = 100;
+      isCompleted = true;
+    } else if (status == 'Berjalan') {
+      apiStatus = 'berjalan';
+      progress = 50;
+      isCompleted = false;
+    } else {
+      apiStatus = 'belum_mulai';
+      progress = 0;
+      isCompleted = false;
+    }
+    
     final updatedTask = task.copyWith(
-      isCompleted: status == 'Selesai',
+      isCompleted: isCompleted,
+      status: apiStatus,
+      progress: progress,
+      imagePath: imagePath ?? task.imagePath,
     );
     
     return await _apiController.updateTask(updatedTask);
   }
 
+  Future<String?> uploadTaskImage(String filePath) async {
+    return await _apiController.uploadTaskImage(filePath);
+  }
+
   Future<Map<String, int>> getTaskStatistics() async {
     await _apiController.loadTasks();
-    final stats = _apiController.statistics;
+    
+    List<task_model.Task> convertedTasks = _apiController.tasks.map((t) => _convertFromApi(t)).toList();
+    
+    int totalCount = convertedTasks.length;
+    int belumMulaiCount = convertedTasks.where((t) => t.status == 'Belum Mulai').length;
+    int berjalanCount = convertedTasks.where((t) => t.status == 'Berjalan').length;
+    int selesaiCount = convertedTasks.where((t) => t.status == 'Selesai').length;
     
     return {
-      'total': stats['total'] ?? 0,
-      'belumMulai': stats['active'] ?? 0,
-      'berjalan': 0,
-      'selesai': stats['completed'] ?? 0,
+      'total': totalCount,
+      'belumMulai': belumMulaiCount,
+      'berjalan': berjalanCount,
+      'selesai': selesaiCount,
     };
   }
 

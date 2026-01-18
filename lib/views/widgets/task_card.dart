@@ -91,14 +91,22 @@ class TaskCard extends StatelessWidget {
                 ),
               ),
               PopupMenuButton(
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
                     value: 'edit',
                     child: Text('Edit'),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Text('Delete'),
+                  ),
+                  PopupMenuItem(
+                    value: 'run',
+                    child: Text('Tandai Berjalan'),
+                  ),
+                  PopupMenuItem(
+                    value: 'done',
+                    child: Text('Tandai Selesai (foto)'),
                   ),
                 ],
                 onSelected: (value) {
@@ -106,6 +114,10 @@ class TaskCard extends StatelessWidget {
                     onEdit();
                   } else if (value == 'delete') {
                     onDelete();
+                  } else if (value == 'run') {
+                    onStatusChange('Berjalan');
+                  } else if (value == 'done') {
+                    onStatusChange('Selesai');
                   }
                 },
               ),
@@ -122,6 +134,50 @@ class TaskCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
+          // Progress bar untuk tugas berjalan
+          if (task.status == 'Berjalan')
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Progress',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '${task.progress}%',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: task.progress / 100,
+                    minHeight: 8,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      task.progress >= 75
+                          ? Colors.green
+                          : task.progress >= 50
+                              ? Colors.amber
+                              : Colors.orange,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

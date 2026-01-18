@@ -7,6 +7,8 @@ class Task {
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int progress; // 0-100
+  final String? imagePath;
 
   Task({
     this.id,
@@ -17,6 +19,8 @@ class Task {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.progress = 0,
+    this.imagePath,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,12 +31,24 @@ class Task {
       'subject': subject,
       'due_date': dueDate.toIso8601String(),
       'status': status,
+      'progress': progress,
+      'image_path': imagePath,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   factory Task.fromMap(Map<String, dynamic> map) {
+    // Parse progress - bisa string atau int
+    int progressValue = 0;
+    if (map['progress'] != null) {
+      if (map['progress'] is int) {
+        progressValue = map['progress'];
+      } else if (map['progress'] is String) {
+        progressValue = int.tryParse(map['progress']) ?? 0;
+      }
+    }
+
     return Task(
       id: map['id'] as int?,
       title: map['title'] as String,
@@ -40,6 +56,8 @@ class Task {
       subject: map['subject'] as String,
       dueDate: DateTime.parse(map['due_date'] as String),
       status: map['status'] as String,
+      progress: progressValue,
+      imagePath: map['image_path'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
@@ -54,6 +72,8 @@ class Task {
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? progress,
+    String? imagePath,
   }) {
     return Task(
       id: id ?? this.id,
@@ -62,6 +82,8 @@ class Task {
       subject: subject ?? this.subject,
       dueDate: dueDate ?? this.dueDate,
       status: status ?? this.status,
+      progress: progress ?? this.progress,
+      imagePath: imagePath ?? this.imagePath,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

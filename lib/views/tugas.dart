@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme.dart';
 import '../../models/task_model.dart';
 import '../../controller/task_controller.dart';
@@ -92,7 +93,7 @@ class _TaskScreenState extends State<TaskScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(2),
                     child: Image.asset(
-                      'assets/icon/Logo Schedule.png',
+                      'assets/icon/logo_schedule.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
@@ -374,7 +375,31 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> _updateTaskStatus(int taskId, String status) async {
-    await _taskController.updateTaskStatus(taskId, status);
+    String? imageUrl;
+
+    if (status == 'Selesai') {
+      final picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+      );
+
+      if (photo == null) {
+        return; // user canceled
+      }
+
+      imageUrl = await _taskController.uploadTaskImage(photo.path);
+      if (imageUrl == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengupload foto')),
+          );
+        }
+        return;
+      }
+    }
+
+    await _taskController.updateTaskStatus(taskId, status, imagePath: imageUrl);
     setState(() {});
 
     if (mounted) {

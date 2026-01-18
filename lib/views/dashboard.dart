@@ -4,21 +4,33 @@ import '../../models/task_model.dart';
 import '../../models/schedule_model.dart';
 import '../../controller/task_controller.dart';
 import '../../controller/schedule_controller.dart';
+import '../services/user_session.dart';
 import 'widgets/stats_card.dart';
 import 'widgets/task_card.dart';
 import 'widgets/schedule_card.dart';
+import 'widgets/bottom_navigation.dart';
+import 'widgets/add_schedule_dialog.dart';
 import 'login.dart';
+import 'jadwal.dart';
+import 'tugas.dart';
+import 'riwayat.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
+  final int? userId;
 
-  const DashboardScreen({super.key, this.userName = 'User'});
+  const DashboardScreen({
+    super.key,
+    this.userName = 'User',
+    this.userId,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
   final TaskController _taskController = TaskController();
   final ScheduleController _scheduleController = ScheduleController();
 
@@ -36,6 +48,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _dashboardData = _fetchDashboardData();
       });
     }
+  }
+
+  void _onNavItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   Future<Map<String, dynamic>> _fetchDashboardData() async {
@@ -110,6 +128,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           ElevatedButton(
             onPressed: () {
+              // Clear user session
+              UserSession().logout();
+              
               Navigator.pop(context);
               Navigator.pushAndRemoveUntil(
                 context,
@@ -129,16 +150,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {
-          _loadDashboardData();
-        });
-      },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
+    final screens = [
+      _buildHomeScreen(),
+      ScheduleScreen(userName: widget.userName),
+      TaskScreen(userName: widget.userName),
+      HistoryScreen(userName: widget.userName),
+    ];
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: screens[_selectedIndex],
+      bottomNavigationBar: CustomBottomNavigation(
+        currentIndex: _selectedIndex,
+        onTap: _onNavItemTapped,
+      ),
+    );
+  }
+
+  Widget _buildHomeScreen() {
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _loadDashboardData();
+          });
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+              children: [
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -178,7 +218,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(2),
                             child: Image.asset(
-                              'assets/icon/Logo Schedule.png',
+                              'assets/icon/logo_schedule.png',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Icon(
@@ -232,14 +272,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Text(
                     'Selamat Datang! 👋',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.text,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _getFormaltedDate(),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.text.withOpacity(0.65),
+                      color: Colors.grey.shade600,
                     ),
                   ),
                 ],
@@ -269,14 +313,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: AppColors.overdue.withOpacity(0.9),
                           ),
                           const SizedBox(height: 8),
-                          const Text('Error loading data'),
+                          Text(
+                            'Error loading data',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             snapshot.error.toString(),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.text.withOpacity(0.65),
+                              color: Colors.grey.shade600,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -309,28 +360,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       StatsCard(
                         label: 'Total Tugas',
                         count: stats['total'] ?? 0,
-                        backgroundColor: AppColors.primaryLight(0.12),
+                        backgroundColor: const Color(0xFFE0F2F1),
                         textColor: AppColors.primary,
                         icon: Icons.check_circle,
                       ),
                       StatsCard(
                         label: 'Selesai',
                         count: stats['selesai'] ?? 0,
-                        backgroundColor: AppColors.successLight(),
+                        backgroundColor: const Color(0xFFD1FAE5),
                         textColor: AppColors.success,
                         icon: Icons.verified,
                       ),
                       StatsCard(
                         label: 'Berjalan',
                         count: stats['berjalan'] ?? 0,
-                        backgroundColor: AppColors.accentLight(),
-                        textColor: AppColors.accent,
+                        backgroundColor: const Color(0xFFFEF3C7),
+                        textColor: const Color(0xFFD97706),
                         icon: Icons.schedule,
                       ),
                       StatsCard(
                         label: 'Belum Mulai',
                         count: stats['belumMulai'] ?? 0,
-                        backgroundColor: AppColors.overdueLight(),
+                        backgroundColor: const Color(0xFFFEE2E2),
                         textColor: AppColors.overdue,
                         icon: Icons.warning,
                       ),
@@ -347,9 +398,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Tugas Mendekati Deadline',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.text,
+                    ),
                   ),
                   Icon(
                     Icons.warning_rounded,
@@ -377,11 +432,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (upcomingTasks.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: Text(
-                        'Tidak ada tugas yang mendekati deadline',
-                        style: TextStyle(
-                          color: AppColors.text.withOpacity(0.6),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Tidak ada tugas yang mendekati deadline',
+                          style: TextStyle(
+                            color: AppColors.text.withOpacity(0.5),
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -408,9 +472,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Jadwal Hari Ini',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.text,
+                    ),
                   ),
                   Icon(
                     Icons.calendar_today,
@@ -438,11 +506,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (schedules.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: Text(
-                        'Tidak ada jadwal untuk hari ini',
-                        style: TextStyle(
-                          color: AppColors.text.withOpacity(0.6),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Tidak ada jadwal untuk hari ini',
+                          style: TextStyle(
+                            color: AppColors.text.withOpacity(0.5),
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -454,8 +531,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       .map(
                         (schedule) => ScheduleCard(
                           schedule: schedule,
-                          onEdit: () {},
-                          onDelete: () {},
+                          onEdit: () async {
+                            final result = await showDialog(
+                              context: context,
+                              builder: (context) => AddScheduleDialog(
+                                schedule: schedule,
+                              ),
+                            );
+                            if (result == true) {
+                              _loadDashboardData();
+                            }
+                          },
+                          onDelete: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hapus Jadwal'),
+                                content: const Text(
+                                  'Apakah Anda yakin ingin menghapus jadwal ini?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    child: const Text(
+                                      'Hapus',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                            
+                            if (confirm == true && schedule.id != null) {
+                              final success = await _scheduleController.deleteSchedule(schedule.id!);
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Jadwal berhasil dihapus'),
+                                  ),
+                                );
+                                _loadDashboardData();
+                              }
+                            }
+                          },
                         ),
                       )
                       .toList(),
@@ -464,9 +589,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
 
             const SizedBox(height: 24),
-          ],
+              ],
+            ),
+          ),
         ),
-      ),
-    );
+      );
   }
 }
