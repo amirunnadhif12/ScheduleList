@@ -48,90 +48,57 @@ function handleGet($conn) {
         $result = $stmt->get_result();
         
         if ($row = $result->fetch_assoc()) {
-            $row['is_completed'] = (bool)$row['is_completed'];
             echo json_encode(['success' => true, 'data' => $row]);
         } else {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Task not found']);
         }
         $stmt->close();
-    } elseif (isset($_GET['status'])) {
-        // Get tasks by status (belum_mulai, berjalan, selesai)
+    } elseif (isset($_GET['user_id']) && isset($_GET['status'])) {
+        // Get tasks by user_id and status
+        $user_id = intval($_GET['user_id']);
         $status = $_GET['status'];
         $validStatuses = ['belum_mulai', 'berjalan', 'selesai'];
+        
         if (!in_array($status, $validStatuses)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid status']);
             return;
         }
-        $stmt = $conn->prepare("SELECT * FROM tasks WHERE status = ? ORDER BY deadline ASC");
-        $stmt->bind_param("s", $status);
+        
+        $stmt = $conn->prepare("SELECT * FROM tasks WHERE user_id = ? AND status = ? ORDER BY deadline ASC");
+        $stmt->bind_param("is", $user_id, $status);
         $stmt->execute();
         $result = $stmt->get_result();
         
         $tasks = [];
         while ($row = $result->fetch_assoc()) {
-            $row['is_completed'] = (bool)$row['is_completed'];
             $tasks[] = $row;
         }
         
         echo json_encode(['success' => true, 'data' => $tasks]);
         $stmt->close();
-    } elseif (isset($_GET['priority'])) {
-        // Get tasks by priority (rendah, sedang, tinggi)
-        $priority = $_GET['priority'];
-        $stmt = $conn->prepare("SELECT * FROM tasks WHERE priority = ? ORDER BY deadline ASC");
-        $stmt->bind_param("s", $priority);
+    } elseif (isset($_GET['user_id'])) {
+        // Get all tasks for user ordered by deadline
+        $user_id = intval($_GET['user_id']);
+        $stmt = $conn->prepare("SELECT * FROM tasks WHERE user_id = ? ORDER BY deadline ASC");
+        $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
         
         $tasks = [];
         while ($row = $result->fetch_assoc()) {
-            $row['is_completed'] = (bool)$row['is_completed'];
-            $tasks[] = $row;
-        }
-        
-        echo json_encode(['success' => true, 'data' => $tasks]);
-        $stmt->close();
-    } elseif (isset($_GET['category'])) {
-        // Get tasks by category (mata kuliah)
-        $category = $_GET['category'];
-        $stmt = $conn->prepare("SELECT * FROM tasks WHERE category = ? ORDER BY deadline ASC");
-        $stmt->bind_param("s", $category);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        $tasks = [];
-        while ($row = $result->fetch_assoc()) {
-            $row['is_completed'] = (bool)$row['is_completed'];
-            $tasks[] = $row;
-        }
-        
-        echo json_encode(['success' => true, 'data' => $tasks]);
-        $stmt->close();
-    } elseif (isset($_GET['search'])) {
-        // Search tasks
-        $search = '%' . $_GET['search'] . '%';
-        $stmt = $conn->prepare("SELECT * FROM tasks WHERE title LIKE ? ORDER BY deadline ASC");
-        $stmt->bind_param("s", $search);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        $tasks = [];
-        while ($row = $result->fetch_assoc()) {
-            $row['is_completed'] = (bool)$row['is_completed'];
             $tasks[] = $row;
         }
         
         echo json_encode(['success' => true, 'data' => $tasks]);
         $stmt->close();
     } else {
-        // Get all tasks
+        // Get all tasks (no user filter)
         $result = $conn->query("SELECT * FROM tasks ORDER BY deadline ASC");
         
         $tasks = [];
         while ($row = $result->fetch_assoc()) {
-            $row['is_completed'] = (bool)$row['is_completed'];
             $tasks[] = $row;
         }
         
@@ -143,47 +110,44 @@ function handleGet($conn) {
 function handlePost($conn) {
     $data = json_decode(file_get_contents("php://input"), true);
     
-    if (!isset($data['title']) || !isset($data['category']) || !isset($data['deadline']) || !isset($data['priority'])) {
+    if (!isset($data['user_id']) || !isset($data['title']) || !isset($data['subject']) || !isset($data['deadline'])) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing required fields: title, category, deadline, priority']);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields: user_id, title, subject, deadline']);
         return;
     }
     
+    $user_id = intval($data['user_id']);
+    $title = $data['title'];
+    $subject = $data['subject'];
+    $description = $data['description'] ?? '';
+    $deadline = $data['deadline'];
     $status = $data['status'] ?? 'belum_mulai';
+    $priority = $data['priority'] ?? 'sedang';
     $progress = isset($data['progress']) ? intval($data['progress']) : 0;
     $progress = max(0, min(100, $progress)); // Ensure 0-100
     
-    $stmt = $conn->prepare("INSERT INTO tasks (title, category, description, deadline, priority, status, progress, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssss", 
-        $data['title'], 
-        $data['category'],
-        $data['description'] ?? '',
-        $data['deadline'], 
-        $data['priority'],
-        $status,
-        $progress,
-        $data['image_path'] ?? null
-    );
+    $stmt = $conn->prepare("INSERT INTO tasks (user_id, title, description, subject, deadline, status, priority, progress) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssssi", $user_id, $title, $description, $subject, $deadline, $status, $priority, $progress);
     
     if ($stmt->execute()) {
         $newId = $conn->insert_id;
         $newTask = [
             'id' => $newId,
-            'title' => $data['title'],
-            'category' => $data['category'],
-            'description' => $data['description'] ?? '',
-            'deadline' => $data['deadline'],
-            'priority' => $data['priority'],
+            'user_id' => $user_id,
+            'title' => $title,
+            'description' => $description,
+            'subject' => $subject,
+            'deadline' => $deadline,
             'status' => $status,
-            'progress' => $progress,
-            'image_path' => $data['image_path'] ?? null
+            'priority' => $priority,
+            'progress' => $progress
         ];
         
         http_response_code(201);
         echo json_encode(['success' => true, 'message' => 'Task created', 'data' => $newTask]);
     } else {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to create task']);
+        echo json_encode(['success' => false, 'message' => 'Failed to create task: ' . $stmt->error]);
     }
     
     $stmt->close();
@@ -199,35 +163,50 @@ function handlePut($conn) {
         return;
     }
     
-    if (!isset($data['title']) || !isset($data['category']) || !isset($data['deadline']) || !isset($data['priority'])) {
+    $id = intval($data['id']);
+    $title = $data['title'] ?? null;
+    $subject = $data['subject'] ?? null;
+    $description = $data['description'] ?? null;
+    $deadline = $data['deadline'] ?? null;
+    $status = $data['status'] ?? null;
+    $priority = $data['priority'] ?? null;
+    $progress = isset($data['progress']) ? intval($data['progress']) : null;
+    
+    if ($progress !== null) {
+        $progress = max(0, min(100, $progress)); // Ensure 0-100
+    }
+    
+    $updateFields = [];
+    $types = '';
+    $params = [];
+    
+    if ($title !== null) { $updateFields[] = 'title = ?'; $types .= 's'; $params[] = $title; }
+    if ($subject !== null) { $updateFields[] = 'subject = ?'; $types .= 's'; $params[] = $subject; }
+    if ($description !== null) { $updateFields[] = 'description = ?'; $types .= 's'; $params[] = $description; }
+    if ($deadline !== null) { $updateFields[] = 'deadline = ?'; $types .= 's'; $params[] = $deadline; }
+    if ($status !== null) { $updateFields[] = 'status = ?'; $types .= 's'; $params[] = $status; }
+    if ($priority !== null) { $updateFields[] = 'priority = ?'; $types .= 's'; $params[] = $priority; }
+    if ($progress !== null) { $updateFields[] = 'progress = ?'; $types .= 'i'; $params[] = $progress; }
+    
+    if (empty($updateFields)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Missing required fields: title, category, deadline, priority']);
+        echo json_encode(['success' => false, 'message' => 'No fields to update']);
         return;
     }
     
-    $status = $data['status'] ?? 'belum_mulai';
-    $progress = isset($data['progress']) ? intval($data['progress']) : 0;
-    $progress = max(0, min(100, $progress)); // Ensure 0-100
+    $types .= 'i';
+    $params[] = $id;
     
-    $stmt = $conn->prepare("UPDATE tasks SET title = ?, category = ?, description = ?, deadline = ?, priority = ?, status = ?, progress = ?, image_path = ? WHERE id = ?");
-    $stmt->bind_param("ssssssssi", 
-        $data['title'], 
-        $data['category'],
-        $data['description'] ?? '',
-        $data['deadline'], 
-        $data['priority'],
-        $status,
-        $progress,
-        $data['image_path'] ?? null,
-        $data['id']
-    );
+    $query = "UPDATE tasks SET " . implode(', ', $updateFields) . " WHERE id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param($types, ...$params);
     
     if ($stmt->execute()) {
         if ($stmt->affected_rows > 0) {
             echo json_encode(['success' => true, 'message' => 'Task updated']);
         } else {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Task not found or no changes made']);
+            echo json_encode(['success' => false, 'message' => 'Task not found']);
         }
     } else {
         http_response_code(500);

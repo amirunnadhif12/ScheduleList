@@ -107,8 +107,10 @@ class _AddScheduleDialogState extends State<AddScheduleDialog> {
     }
 
     final controller = ScheduleController();
+    bool success = false;
 
     if (widget.schedule != null) {
+      // Update existing schedule
       final now = DateTime.now();
       final schedule = Schedule(
         id: widget.schedule!.id,
@@ -122,9 +124,23 @@ class _AddScheduleDialogState extends State<AddScheduleDialog> {
         createdAt: widget.schedule!.createdAt,
         updatedAt: now,
       );
-      await controller.updateSchedule(schedule);
+      success = await controller.updateSchedule(schedule);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Jadwal berhasil diperbarui!')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal memperbarui jadwal!')),
+          );
+        }
+      }
     } else {
-      await controller.addSchedule(
+      // Create new schedule
+      success = await controller.addSchedule(
         date: _selectedDate,
         startTime: _formatTime(_startTime),
         endTime: _formatTime(_endTime),
@@ -133,10 +149,19 @@ class _AddScheduleDialogState extends State<AddScheduleDialog> {
         description: _descriptionController.text,
         color: _selectedColor,
       );
-    }
-
-    if (mounted) {
-      Navigator.pop(context, true);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Jadwal berhasil ditambahkan!')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal menambahkan jadwal!')),
+          );
+        }
+      }
     }
   }
 

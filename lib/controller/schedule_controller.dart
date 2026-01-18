@@ -138,13 +138,15 @@ class ScheduleController {
         '${viewSchedule.date.month.toString().padLeft(2, '0')}-'
         '${viewSchedule.date.day.toString().padLeft(2, '0')}';
 
-    return Schedule(
+    return Schedule.withFullData(
       id: viewSchedule.id,
       title: viewSchedule.activity,
       description: viewSchedule.description,
       date: dateString,
       time: viewSchedule.startTime,
+      endTime: viewSchedule.endTime,
       location: viewSchedule.location.isEmpty ? null : viewSchedule.location,
+      color: viewSchedule.color,
     );
   }
 
@@ -165,17 +167,13 @@ class ScheduleController {
   }
 
   Future<List<schedule_model.Schedule>> getSchedulesByDate(DateTime date) async {
-    await _apiController.loadSchedules();
-    
     final dateString = '${date.year.toString().padLeft(4, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
     
-    final filtered = _apiController.schedules.where((schedule) {
-      return schedule.date == dateString;
-    }).toList();
+    final apiSchedules = await _apiController.getSchedulesByDate(dateString);
     
-    return filtered.map((s) => _convertFromApi(s)).toList();
+    return apiSchedules.map((s) => _convertFromApi(s)).toList();
   }
 
   Future<List<schedule_model.Schedule>> getAllSchedules() async {

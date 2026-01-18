@@ -8,6 +8,8 @@ import '../services/user_session.dart';
 import 'widgets/stats_card.dart';
 import 'widgets/task_card.dart';
 import 'widgets/schedule_card.dart';
+import 'widgets/bottom_navigation.dart';
+import 'widgets/add_schedule_dialog.dart';
 import 'login.dart';
 import 'jadwal.dart';
 import 'tugas.dart';
@@ -158,33 +160,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: CustomBottomNavigation(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        elevation: 8,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: Colors.grey.shade400,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_rounded),
-            label: 'Jadwal',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.task_rounded),
-            label: 'Tugas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_rounded),
-            label: 'Riwayat',
-          ),
-        ],
       ),
     );
   }
@@ -553,8 +531,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       .map(
                         (schedule) => ScheduleCard(
                           schedule: schedule,
-                          onEdit: () {},
-                          onDelete: () {},
+                          onEdit: () async {
+                            final result = await showDialog(
+                              context: context,
+                              builder: (context) => AddScheduleDialog(
+                                schedule: schedule,
+                              ),
+                            );
+                            if (result == true) {
+                              _loadDashboardData();
+                            }
+                          },
+                          onDelete: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hapus Jadwal'),
+                                content: const Text(
+                                  'Apakah Anda yakin ingin menghapus jadwal ini?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                    ),
+                                    child: const Text(
+                                      'Hapus',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                            
+                            if (confirm == true && schedule.id != null) {
+                              final success = await _scheduleController.deleteSchedule(schedule.id!);
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Jadwal berhasil dihapus'),
+                                  ),
+                                );
+                                _loadDashboardData();
+                              }
+                            }
+                          },
                         ),
                       )
                       .toList(),

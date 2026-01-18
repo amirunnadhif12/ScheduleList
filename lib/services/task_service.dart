@@ -19,7 +19,7 @@ class TaskService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['success']) {
+        if (data['success'] == true) {
           List<Task> tasks = (data['data'] as List)
               .map((json) => Task.fromMap(json))
               .toList();
@@ -28,6 +28,7 @@ class TaskService {
       }
       return []; // Return empty list instead of throwing error
     } catch (e) {
+      print('Error in getAllTasks: $e');
       return []; // Return empty list on error
     }
   }
@@ -35,9 +36,14 @@ class TaskService {
   // Get tasks by status
   Future<List<Task>> getTasksByStatus(bool isCompleted) async {
     try {
-      String status = isCompleted ? 'completed' : 'active';
+      final userId = UserSession().userId;
+      if (userId == null) {
+        return [];
+      }
+
+      String status = isCompleted ? 'selesai' : 'belum_mulai';
       final response = await http.get(
-        Uri.parse('${ApiConfig.tasksEndpoint}?status=$status'),
+        Uri.parse('${ApiConfig.tasksEndpoint}?user_id=$userId&status=$status'),
       ).timeout(ApiConfig.timeoutDuration);
 
       if (response.statusCode == 200) {
@@ -49,9 +55,10 @@ class TaskService {
           return tasks;
         }
       }
-      throw Exception('Failed to load tasks');
+      return [];
     } catch (e) {
-      throw Exception('Error: $e');
+      print('Error in getTasksByStatus: $e');
+      return [];
     }
   }
 
@@ -121,10 +128,19 @@ class TaskService {
   // Create task
   Future<Task> createTask(Task task) async {
     try {
+      final userId = UserSession().userId;
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Add user_id to task data
+      final taskData = task.toMap();
+      taskData['user_id'] = userId;
+
       final response = await http.post(
         Uri.parse(ApiConfig.tasksEndpoint),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode(task.toMap()),
+        body: json.encode(taskData),
       ).timeout(ApiConfig.timeoutDuration);
 
       if (response.statusCode == 201) {
