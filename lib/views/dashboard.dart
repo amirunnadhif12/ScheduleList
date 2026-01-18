@@ -9,6 +9,9 @@ import 'widgets/stats_card.dart';
 import 'widgets/task_card.dart';
 import 'widgets/schedule_card.dart';
 import 'login.dart';
+import 'jadwal.dart';
+import 'tugas.dart';
+import 'riwayat.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
@@ -25,6 +28,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
   final TaskController _taskController = TaskController();
   final ScheduleController _scheduleController = ScheduleController();
 
@@ -42,6 +46,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _dashboardData = _fetchDashboardData();
       });
     }
+  }
+
+  void _onNavItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   Future<Map<String, dynamic>> _fetchDashboardData() async {
@@ -138,18 +148,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screens = [
+      _buildHomeScreen(),
+      ScheduleScreen(userName: widget.userName),
+      TaskScreen(userName: widget.userName),
+      HistoryScreen(userName: widget.userName),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {
-              _loadDashboardData();
-            });
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
+      body: screens[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavItemTapped,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        elevation: 8,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: Colors.grey.shade400,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month_rounded),
+            label: 'Jadwal',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.task_rounded),
+            label: 'Tugas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_rounded),
+            label: 'Riwayat',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeScreen() {
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _loadDashboardData();
+          });
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
               children: [
             Container(
               width: double.infinity,
@@ -517,7 +567,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
