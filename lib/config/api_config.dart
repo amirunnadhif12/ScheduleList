@@ -12,11 +12,12 @@ class ApiConfig {
       return 'http://localhost/schedulelist/backend/api';
     } else if (Platform.isAndroid) {
       // Android emulator special IP
-      return 'http://10.0.2.2/schedulelist/backend/api';
+      // return 'http://10.0.2.2/schedulelist/backend/api';
+      return 'http://10.1.19.222/schedulelist/backend/api';
     } else {
       // iOS simulator, Windows, macOS, Linux
       return 'http://localhost/schedulelist/backend/api';
-    }
+    } 
   }
   
   // Endpoints
