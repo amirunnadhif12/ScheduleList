@@ -75,7 +75,7 @@ class TaskControllerAPI extends ChangeNotifier {
     }
   }
 
-  Future<bool> toggleTaskStatus(int id) async {
+  Future<bool> toggleTaskStatus(String id) async {
     try {
       bool success = await _service.toggleTaskStatus(id);
       if (success) {
@@ -93,7 +93,7 @@ class TaskControllerAPI extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteTask(int id) async {
+  Future<bool> deleteTask(String id) async {
     try {
       bool success = await _service.deleteTask(id);
       if (success) {
@@ -348,11 +348,11 @@ class TaskController {
     return await _apiController.updateTask(apiTask);
   }
 
-  Future<bool> deleteTask(int id) async {
+  Future<bool> deleteTask(String id) async {
     return await _apiController.deleteTask(id);
   }
 
-  Future<bool> updateTaskStatus(int id, String status, {String? imagePath}) async {
+  Future<bool> updateTaskStatus(String id, String status, {String? imagePath}) async {
     await _apiController.loadTasks();
     final task = _apiController.tasks.firstWhere((t) => t.id == id);
     

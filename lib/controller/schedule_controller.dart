@@ -68,7 +68,7 @@ class ScheduleControllerAPI extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteSchedule(int id) async {
+  Future<bool> deleteSchedule(String id) async {
     try {
       bool success = await _service.deleteSchedule(id);
       if (success) {
@@ -212,7 +212,7 @@ class ScheduleController {
     return await _apiController.updateSchedule(apiSchedule);
   }
 
-  Future<bool> deleteSchedule(int id) async {
+  Future<bool> deleteSchedule(String id) async {
     return await _apiController.deleteSchedule(id);
   }
 

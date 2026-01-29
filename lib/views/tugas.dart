@@ -363,7 +363,7 @@ class _TaskScreenState extends State<TaskScreen> {
     return tasks;
   }
 
-  Future<void> _deleteTask(int taskId) async {
+  Future<void> _deleteTask(String taskId) async {
     await _taskController.deleteTask(taskId);
     setState(() {});
 
@@ -374,7 +374,7 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
-  Future<void> _updateTaskStatus(int taskId, String status) async {
+  Future<void> _updateTaskStatus(String taskId, String status) async {
     String? imageUrl;
 
     if (status == 'Selesai') {

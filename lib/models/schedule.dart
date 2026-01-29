@@ -1,5 +1,5 @@
 class Schedule {
-  final int? id;
+  final String? id;
   final String title;
   final String description;
   final String date; // Format: YYYY-MM-DD
@@ -62,7 +62,7 @@ class Schedule {
   // Convert Map dari database to Schedule object
   factory Schedule.fromMap(Map<String, dynamic> map) {
     return Schedule(
-      id: map['id'],
+      id: map['id']?.toString(),
       title: map['activity'] ?? map['title'] ?? '',  // Support both field names
       description: map['description'] ?? '',
       date: map['date'] ?? '',
@@ -73,9 +73,36 @@ class Schedule {
     );
   }
 
+  // Convert to Map for Firestore
+  Map<String, dynamic> toFirestore() {
+    return {
+      'activity': title,
+      'description': description,
+      'date': date,
+      'start_time': time,
+      'end_time': endTime ?? _calculateEndTime(time),
+      'location': location ?? '',
+      'color': color ?? '#2563eb',
+    };
+  }
+
+  // Create from Firestore document
+  factory Schedule.fromFirestore(Map<String, dynamic> map) {
+    return Schedule(
+      id: map['id']?.toString(),
+      title: map['activity'] ?? map['title'] ?? '',
+      description: map['description'] ?? '',
+      date: map['date'] ?? '',
+      time: map['start_time'] ?? map['time'] ?? '',
+      endTime: map['end_time'],
+      location: map['location'],
+      color: map['color'],
+    );
+  }
+
   // Copy with method untuk update data
   Schedule copyWith({
-    int? id,
+    String? id,
     String? title,
     String? description,
     String? date,

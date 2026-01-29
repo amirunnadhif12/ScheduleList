@@ -14,6 +14,7 @@ class LoginRegisterScreen extends StatefulWidget {
 class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
   bool isLogin = true;
   bool isLoading = false;
+  final AuthService _authService = AuthService();
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -42,7 +43,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     setState(() => isLoading = true);
 
     try {
-      final result = await AuthService.login(
+      final result = await _authService.login(
         email: email,
         password: password,
       );
@@ -107,7 +108,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     setState(() => isLoading = true);
 
     try {
-      final result = await AuthService.register(
+      final result = await _authService.register(
         name: name,
         email: email,
         password: password,

@@ -1,5 +1,5 @@
 class Task {
-  final int? id;
+  final String? id;
   final String title;
   final String description;
   final String subject; // Subject/Mata Kuliah
@@ -67,14 +67,10 @@ class Task {
       progressValue = completed ? 100 : 0;
     }
 
-    // Parse id - bisa string atau int dari backend
-    int? idValue;
+    // Parse id - convert to String for Firebase compatibility
+    String? idValue;
     if (map['id'] != null) {
-      if (map['id'] is int) {
-        idValue = map['id'];
-      } else if (map['id'] is String) {
-        idValue = int.tryParse(map['id']);
-      }
+      idValue = map['id'].toString();
     }
 
     return Task(
@@ -94,9 +90,61 @@ class Task {
     );
   }
 
+  // Convert to Map for Firestore
+  Map<String, dynamic> toFirestore() {
+    return {
+      'title': title,
+      'description': description,
+      'subject': subject,
+      'deadline': deadline,
+      'priority': priority,
+      'status': status ?? (isCompleted ? 'selesai' : 'belum_mulai'),
+      'progress': progress,
+      'image_path': imagePath,
+    };
+  }
+
+  // Create from Firestore document
+  factory Task.fromFirestore(Map<String, dynamic> map) {
+    String statusValue = '';
+    bool completed = false;
+    
+    if (map.containsKey('status')) {
+      statusValue = map['status'] ?? 'belum_mulai';
+      completed = statusValue == 'selesai';
+    }
+
+    int progressValue = 0;
+    if (map['progress'] != null) {
+      if (map['progress'] is int) {
+        progressValue = map['progress'];
+      } else if (map['progress'] is String) {
+        progressValue = int.tryParse(map['progress']) ?? 0;
+      }
+    } else {
+      progressValue = completed ? 100 : 0;
+    }
+
+    return Task(
+      id: map['id']?.toString(),
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      subject: map['subject'] ?? '',
+      deadline: map['deadline'] ?? '',
+      priority: map['priority'] ?? 'sedang',
+      isCompleted: completed,
+      imagePath: map['image_path'],
+      status: statusValue,
+      progress: progressValue,
+      createdAt: map['created_at'] != null 
+          ? (map['created_at'] is DateTime ? map['created_at'] : DateTime.parse(map['created_at'].toString()))
+          : DateTime.now(),
+    );
+  }
+
   // Copy with method untuk update data
   Task copyWith({
-    int? id,
+    String? id,
     String? title,
     String? description,
     String? subject,

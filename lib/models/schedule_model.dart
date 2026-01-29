@@ -1,5 +1,5 @@
 class Schedule {
-  final int? id;
+  final String? id;  // Changed from int? to String? for Firebase document ID
   final DateTime date;
   final String startTime; 
   final String endTime;   
@@ -23,6 +23,7 @@ class Schedule {
     required this.updatedAt,
   });
 
+  // Convert to Map for MySQL/PHP backend (legacy)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -38,9 +39,23 @@ class Schedule {
     };
   }
 
+  // Convert to Map for Firestore
+  Map<String, dynamic> toFirestore() {
+    return {
+      'date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'start_time': startTime,
+      'end_time': endTime,
+      'activity': activity,
+      'location': location,
+      'description': description,
+      'color': color,
+    };
+  }
+
+  // Create from MySQL/PHP backend response (legacy)
   factory Schedule.fromMap(Map<String, dynamic> map) {
     return Schedule(
-      id: map['id'] as int?,
+      id: map['id']?.toString(),
       date: DateTime.parse(map['date'] as String),
       startTime: map['start_time'] as String,
       endTime: map['end_time'] as String,
@@ -53,8 +68,54 @@ class Schedule {
     );
   }
 
+  // Create from Firestore document
+  factory Schedule.fromFirestore(Map<String, dynamic> map) {
+    DateTime now = DateTime.now();
+    
+    // Parse created_at
+    DateTime createdAt;
+    if (map['created_at'] != null) {
+      if (map['created_at'] is DateTime) {
+        createdAt = map['created_at'];
+      } else if (map['created_at'].toDate != null) {
+        createdAt = map['created_at'].toDate();
+      } else {
+        createdAt = DateTime.parse(map['created_at'].toString());
+      }
+    } else {
+      createdAt = now;
+    }
+
+    // Parse updated_at
+    DateTime updatedAt;
+    if (map['updated_at'] != null) {
+      if (map['updated_at'] is DateTime) {
+        updatedAt = map['updated_at'];
+      } else if (map['updated_at'].toDate != null) {
+        updatedAt = map['updated_at'].toDate();
+      } else {
+        updatedAt = DateTime.parse(map['updated_at'].toString());
+      }
+    } else {
+      updatedAt = now;
+    }
+
+    return Schedule(
+      id: map['id'] as String?,
+      date: DateTime.parse(map['date'] as String),
+      startTime: map['start_time'] as String,
+      endTime: map['end_time'] as String,
+      activity: map['activity'] as String,
+      location: (map['location'] ?? '') as String,
+      description: map['description'] as String,
+      color: (map['color'] ?? '#2563eb') as String,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   Schedule copyWith({
-    int? id,
+    String? id,
     DateTime? date,
     String? startTime,
     String? endTime,
