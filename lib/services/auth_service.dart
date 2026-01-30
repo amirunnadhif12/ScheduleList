@@ -1,114 +1,81 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_config.dart';
+import 'database_helper.dart';
 
 class AuthService {
-  static Future<Map<String, dynamic>> login({
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
+  Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/auth/login.php');
-      
-      final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'email': email,
-              'password': password,
-            }),
-          )
-          .timeout(ApiConfig.timeoutDuration);
+      final user = await _dbHelper.getUserByEmail(email);
 
-      // Check if response is HTML (error page)
-      if (response.body.trim().startsWith('<')) {
+      if (user == null) {
         return {
           'success': false,
-          'message': 'Server error: Pastikan XAMPP MySQL sudah running',
+          'message': 'Email tidak ditemukan',
         };
       }
 
-      final responseData = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && responseData['success'] == true) {
-        return {
-          'success': true,
-          'message': responseData['message'],
-          'user': responseData['data'],
-        };
-      } else {
+      if (user['password'] != password) {
         return {
           'success': false,
-          'message': responseData['message'] ?? 'Login failed',
+          'message': 'Password salah',
         };
       }
+
+      return {
+        'success': true,
+        'message': 'Login berhasil',
+        'user': {
+          'id': user['id'],
+          'name': user['name'],
+          'email': user['email'],
+        },
+      };
     } catch (e) {
-      if (e.toString().contains('FormatException')) {
-        return {
-          'success': false,
-          'message': 'Server error: Pastikan XAMPP Apache & MySQL sudah running',
-        };
-      }
       return {
         'success': false,
-        'message': 'Connection error: ${e.toString()}',
+        'message': 'Error: ${e.toString()}',
       };
     }
   }
 
-  static Future<Map<String, dynamic>> register({
+  Future<Map<String, dynamic>> register({
     required String name,
     required String email,
     required String password,
   }) async {
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/auth/register.php');
-      
-      final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'name': name,
-              'email': email,
-              'password': password,
-            }),
-          )
-          .timeout(ApiConfig.timeoutDuration);
-
-      // Check if response is HTML (error page)
-      if (response.body.trim().startsWith('<')) {
+      // Cek apakah email sudah terdaftar
+      final existingUser = await _dbHelper.getUserByEmail(email);
+      if (existingUser != null) {
         return {
           'success': false,
-          'message': 'Server error: Pastikan XAMPP MySQL sudah running',
+          'message': 'Email sudah terdaftar',
         };
       }
 
-      final responseData = jsonDecode(response.body);
+      // Insert user baru
+      final userId = await _dbHelper.insertUser({
+        'name': name,
+        'email': email,
+        'password': password,
+      });
 
-      if (response.statusCode == 201 && responseData['success'] == true) {
-        return {
-          'success': true,
-          'message': responseData['message'],
-          'user': responseData['data'],
-        };
-      } else {
-        return {
-          'success': false,
-          'message': responseData['message'] ?? 'Registration failed',
-        };
-      }
+      return {
+        'success': true,
+        'message': 'Registrasi berhasil',
+        'user': {
+          'id': userId,
+          'name': name,
+          'email': email,
+        },
+      };
     } catch (e) {
-      if (e.toString().contains('FormatException')) {
-        return {
-          'success': false,
-          'message': 'Server error: Pastikan XAMPP Apache & MySQL sudah running',
-        };
-      }
       return {
         'success': false,
-        'message': 'Connection error: ${e.toString()}',
+        'message': 'Error: ${e.toString()}',
       };
     }
   }

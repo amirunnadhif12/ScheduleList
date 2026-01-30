@@ -3,6 +3,7 @@ import 'package:schedulelist/theme.dart';
 import 'package:schedulelist/views/login.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
 }
 
