@@ -9,11 +9,11 @@ class AppColors {
   static const Color background = Color(0xFFF9FAFB); // Soft White
   static const Color text = Color(0xFF1F2937); // Charcoal Dark
 
-  // light variants (using opacity)
-  static Color primaryLight([double o = 0.1]) => primary.withOpacity(o);
-  static Color successLight([double o = 0.12]) => success.withOpacity(o);
-  static Color accentLight([double o = 0.12]) => accent.withOpacity(o);
-  static Color overdueLight([double o = 0.12]) => overdue.withOpacity(o);
+  // light variants (using alpha)
+  static Color primaryLight([double a = 0.1]) => primary.withValues(alpha: a);
+  static Color successLight([double a = 0.12]) => success.withValues(alpha: a);
+  static Color accentLight([double a = 0.12]) => accent.withValues(alpha: a);
+  static Color overdueLight([double a = 0.12]) => overdue.withValues(alpha: a);
 }
 
 final appTheme = ThemeData(

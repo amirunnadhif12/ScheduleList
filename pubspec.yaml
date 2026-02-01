@@ -18,6 +18,12 @@ dependencies:
   image_picker: ^1.0.7
   # Untuk menyimpan gambar lokal
   path_provider: ^2.1.1
+  # Local Notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+  permission_handler: ^11.3.1
+  # Persistent Storage
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

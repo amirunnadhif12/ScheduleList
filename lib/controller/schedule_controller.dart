@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/schedule.dart';
 import '../models/schedule_model.dart' as schedule_model;
 import '../services/schedule_service.dart';
+import '../services/notification_service.dart';
 
 // ============================================================================
 // ScheduleControllerAPI - Controller untuk API (menggunakan models/schedule.dart)
@@ -204,7 +205,31 @@ class ScheduleController {
       color: color,
     );
 
-    return await _apiController.addSchedule(newSchedule);
+    final success = await _apiController.addSchedule(newSchedule);
+    
+    // Schedule notification for the event
+    if (success) {
+      try {
+        final timeParts = startTime.split(':');
+        final hour = int.tryParse(timeParts[0]) ?? 0;
+        final minute = timeParts.length > 1 ? (int.tryParse(timeParts[1]) ?? 0) : 0;
+        
+        final scheduleDateTime = DateTime(date.year, date.month, date.day, hour, minute);
+        final notificationId = activity.hashCode.abs() % 100000;
+        
+        await NotificationService().scheduleEventReminder(
+          scheduleId: notificationId,
+          scheduleName: activity,
+          startTime: scheduleDateTime,
+          description: description,
+        );
+        debugPrint('📅 Schedule reminder set for: $activity');
+      } catch (e) {
+        debugPrint('⚠️ Failed to schedule notification: $e');
+      }
+    }
+    
+    return success;
   }
 
   Future<bool> updateSchedule(schedule_model.Schedule schedule) async {
