@@ -74,13 +74,14 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'schedule_list_channel',
       'Schedule List Notifications',
       channelDescription: 'Notifications for tasks and schedules',
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       playSound: true,
       enableVibration: true,
     );
@@ -91,7 +92,7 @@ class NotificationService {
       presentSound: true,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -107,19 +108,28 @@ class NotificationService {
     required DateTime scheduledDate,
     String? payload,
   }) async {
+    // Check if permission is granted first
+    final hasPermission = await isPermissionGranted();
+    if (!hasPermission) {
+      debugPrint('⚠️ Notification permission not granted');
+      await requestPermission();
+      return;
+    }
+
     // Don't schedule if the date is in the past
     if (scheduledDate.isBefore(DateTime.now())) {
       debugPrint('⚠️ Cannot schedule notification in the past');
       return;
     }
 
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'schedule_list_channel',
       'Schedule List Notifications',
       channelDescription: 'Notifications for tasks and schedules',
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_notification',
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       playSound: true,
       enableVibration: true,
     );
@@ -130,7 +140,7 @@ class NotificationService {
       presentSound: true,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -245,5 +255,32 @@ class NotificationService {
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
     debugPrint('❌ All notifications cancelled');
+  }
+
+  /// Test notification - untuk debug/testing
+  Future<void> testNotification() async {
+    final hasPermission = await isPermissionGranted();
+    debugPrint('🔔 Testing notification - Permission granted: $hasPermission');
+    
+    if (!hasPermission) {
+      final granted = await requestPermission();
+      if (!granted) {
+        debugPrint('❌ User denied notification permission');
+        return;
+      }
+    }
+
+    await showNotification(
+      id: 999,
+      title: '🔔 Test Notifikasi',
+      body: 'Notifikasi berhasil! Aplikasi Schedule List siap digunakan.',
+      payload: 'test',
+    );
+    debugPrint('✅ Test notification sent');
+  }
+
+  /// Get pending notifications count (untuk debugging)
+  Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    return await _notifications.pendingNotificationRequests();
   }
 }

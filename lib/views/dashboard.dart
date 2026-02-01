@@ -5,6 +5,7 @@ import '../../models/schedule_model.dart';
 import '../../controller/task_controller.dart';
 import '../../controller/schedule_controller.dart';
 import '../services/user_session.dart';
+import '../services/notification_service.dart';
 import 'widgets/stats_card.dart';
 import 'widgets/task_card.dart';
 import 'widgets/schedule_card.dart';
@@ -293,21 +294,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ],
                           ),
-                          Material(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                            child: InkWell(
-                              onTap: () => _showLogoutDialog(context),
-                              borderRadius: BorderRadius.circular(10),
-                              child: const Padding(
-                                padding: EdgeInsets.all(10),
-                                child: Icon(
-                                  Icons.logout_rounded,
-                                  color: Colors.white,
-                                  size: 20,
+                          Row(
+                            children: [
+                              // Test notification button
+                              Material(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  onTap: () async {
+                                    await NotificationService().testNotification();
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Test notifikasi dikirim! Cek notifikasi HP Anda.'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Icon(
+                                      Icons.notifications_active_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              // Logout button
+                              Material(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  onTap: () => _showLogoutDialog(context),
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Icon(
+                                      Icons.logout_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
