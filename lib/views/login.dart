@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../services/auth_service.dart';
 import '../services/user_session.dart';
+import '../services/notification_service.dart';
 import 'dashboard.dart';
 
 class LoginRegisterScreen extends StatefulWidget {
@@ -55,12 +56,15 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
         final userId = result['user']['id'];
         final userEmail = result['user']['email'] ?? '';
         
-        // Save user session
-        UserSession().login(
+        // Save user session (persistent)
+        await UserSession().login(
           userId: userId,
           userName: userName,
           userEmail: userEmail,
         );
+        
+        // Request notification permission
+        await NotificationService().requestPermission();
         
         Navigator.pushReplacement(
           context,
@@ -162,7 +166,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 6),
                       ),
@@ -198,7 +202,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   'Kelola jadwal dan tugas kuliah Anda',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.text.withOpacity(0.6),
+                    color: AppColors.text.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -258,7 +262,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                       'Minimal 6 karakter',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.text.withOpacity(0.5),
+                        color: AppColors.text.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -304,7 +308,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                       ),
                       elevation: 0,
                       disabledBackgroundColor:
-                          AppColors.primary.withOpacity(0.6),
+                          AppColors.primary.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -317,7 +321,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                     Text(
                       isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? ',
                       style: TextStyle(
-                        color: AppColors.text.withOpacity(0.6),
+                        color: AppColors.text.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
@@ -355,7 +359,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
           boxShadow: active
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -367,7 +371,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
             Icon(
               icon,
               size: 18,
-              color: active ? AppColors.text : AppColors.text.withOpacity(0.5),
+              color: active ? AppColors.text : AppColors.text.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 8),
             Text(
@@ -377,7 +381,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                 fontWeight: active ? FontWeight.w600 : FontWeight.normal,
                 color: active
                     ? AppColors.text
-                    : AppColors.text.withOpacity(0.5),
+                    : AppColors.text.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -418,8 +422,8 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: AppColors.text.withOpacity(0.4)),
-          prefixIcon: Icon(icon, color: AppColors.text.withOpacity(0.5)),
+          hintStyle: TextStyle(color: AppColors.text.withValues(alpha: 0.4)),
+          prefixIcon: Icon(icon, color: AppColors.text.withValues(alpha: 0.5)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,

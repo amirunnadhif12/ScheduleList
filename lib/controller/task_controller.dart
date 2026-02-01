@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../models/task_model.dart' as task_model;
 import '../services/task_service.dart';
+import '../services/notification_service.dart';
 
 // ============================================================================
 // TaskControllerAPI - Controller untuk API (menggunakan models/task.dart)
@@ -152,7 +153,7 @@ class TaskControllerAPI extends ChangeNotifier {
   }
 
   List<Task> get nearDeadlineTasks {
-    return _tasks.where((task) => !task.isCompleted && task.isNearDeadline()).toList();
+    return _tasks.where((task) => !task.isCompleted && task.isNearDeadline(days: 7)).toList();
   }
 
   List<Task> get overdueTasks {
@@ -340,7 +341,25 @@ class TaskController {
       progress: progress,
     );
 
-    return await _apiController.addTask(newTask);
+    final success = await _apiController.addTask(newTask);
+    
+    // Schedule notification for the task deadline
+    if (success && !isCompleted) {
+      try {
+        final notificationId = title.hashCode.abs() % 100000;
+        await NotificationService().scheduleTaskReminder(
+          taskId: notificationId,
+          taskName: title,
+          deadline: dueDate,
+          description: description,
+        );
+        debugPrint('📅 Task reminder scheduled for: $title');
+      } catch (e) {
+        debugPrint('⚠️ Failed to schedule notification: $e');
+      }
+    }
+    
+    return success;
   }
 
   Future<bool> updateTask(task_model.Task task) async {
@@ -382,7 +401,20 @@ class TaskController {
       imagePath: imagePath ?? task.imagePath,
     );
     
-    return await _apiController.updateTask(updatedTask);
+    final success = await _apiController.updateTask(updatedTask);
+    
+    // Cancel notifications if task is completed
+    if (success && isCompleted) {
+      try {
+        final notificationId = task.title.hashCode.abs() % 100000;
+        await NotificationService().cancelTaskReminders(notificationId);
+        debugPrint('❌ Task reminders cancelled for: ${task.title}');
+      } catch (e) {
+        debugPrint('⚠️ Failed to cancel notification: $e');
+      }
+    }
+    
+    return success;
   }
 
   Future<String?> uploadTaskImage(String filePath) async {

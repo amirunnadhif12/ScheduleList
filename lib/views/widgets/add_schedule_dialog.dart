@@ -171,231 +171,338 @@ class _AddScheduleDialogState extends State<AddScheduleDialog> {
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isEditing ? 'Edit Jadwal' : 'Tambah Jadwal Baru',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        isEditing
-                            ? 'Ubah detail jadwal Anda'
-                            : 'Masukkan detail jadwal baru Anda.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.text.withOpacity(0.65),
-                        ),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              _buildLabel('Aktivitas *'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _activityController,
-                hint: 'Masukkan nama aktivitas',
-              ),
-              const SizedBox(height: 16),
-
-              _buildLabel('Tanggal'),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 18,
-                        color: AppColors.text.withOpacity(0.5),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
-                      ),
-                    ],
-                  ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              Row(
+              child: Row(
                 children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      isEditing ? Icons.edit_calendar_rounded : Icons.calendar_month_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLabel('Waktu Mulai'),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () => _selectTime(context, true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time,
-                                  size: 18,
-                                  color: AppColors.text.withOpacity(0.5),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(_formatTime(_startTime)),
-                              ],
-                            ),
+                        Text(
+                          isEditing ? 'Edit Jadwal' : 'Tambah Jadwal',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          isEditing ? 'Ubah detail jadwal Anda' : 'Buat jadwal baru',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Waktu Selesai'),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () => _selectTime(context, false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time,
-                                  size: 18,
-                                  color: AppColors.text.withOpacity(0.5),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(_formatTime(_endTime)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                  Material(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(Icons.close_rounded, color: Colors.white, size: 20),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+            ),
 
-              _buildLabel('Lokasi'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _locationController,
-                hint: 'Masukkan lokasi (opsional)',
-              ),
-              const SizedBox(height: 16),
+            // Form Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLabel('Aktivitas', isRequired: true),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _activityController,
+                    hint: 'Masukkan nama aktivitas',
+                    prefixIcon: Icons.event_note_rounded,
+                  ),
+                  const SizedBox(height: 16),
 
-              _buildLabel('Deskripsi'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _descriptionController,
-                hint: 'Masukkan deskripsi (opsional)',
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
+                  _buildLabel('Tanggal'),
+                  const SizedBox(height: 8),
+                  _buildDateSelector(context),
+                  const SizedBox(height: 16),
 
-              _buildLabel('Warna'),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 10,
-                children: _colors.map((colorData) {
-                  final isSelected = _selectedColor == colorData['color'];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedColor = colorData['color'];
-                      });
-                    },
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Color(
-                          int.parse(
-                            colorData['color'].replaceFirst('#', '0xFF'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Waktu Mulai'),
+                            const SizedBox(height: 8),
+                            _buildTimeSelector(context, true),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Waktu Selesai'),
+                            const SizedBox(height: 8),
+                            _buildTimeSelector(context, false),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Lokasi'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _locationController,
+                    hint: 'Masukkan lokasi (opsional)',
+                    prefixIcon: Icons.location_on_outlined,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Deskripsi'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _descriptionController,
+                    hint: 'Masukkan deskripsi (opsional)',
+                    prefixIcon: Icons.description_outlined,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Warna Label'),
+                  const SizedBox(height: 12),
+                  _buildColorSelector(),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(color: Colors.grey.shade300),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Batal',
+                            style: TextStyle(
+                              color: AppColors.text,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.black, width: 3)
-                            : null,
                       ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: _saveSchedule,
+                          icon: Icon(
+                            isEditing ? Icons.save_rounded : Icons.add_rounded,
+                            size: 20,
+                          ),
+                          label: Text(
+                            isEditing ? 'Simpan' : 'Tambah Jadwal',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _saveSchedule,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    isEditing ? 'Simpan Perubahan' : 'Tambah Jadwal',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+  Widget _buildLabel(String text, {bool isRequired = false}) {
+    return Row(
+      children: [
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
+        ),
+        if (isRequired)
+          Text(
+            ' *',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.overdue,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData prefixIcon,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(
+          color: AppColors.text.withValues(alpha: 0.4),
+          fontSize: 14,
+        ),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 12, right: 8),
+          child: Icon(prefixIcon, size: 20, color: AppColors.primary.withValues(alpha: 0.7)),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+        filled: true,
+        fillColor: AppColors.background,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+    );
+  }
+
+  Widget _buildDateSelector(BuildContext context) {
+    return Material(
+      color: AppColors.background,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => _selectDate(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                size: 20,
+                color: AppColors.primary.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.text,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.arrow_drop_down_rounded,
+                color: AppColors.text.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeSelector(BuildContext context, bool isStart) {
+    return Material(
+      color: AppColors.background,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => _selectTime(context, isStart),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.access_time_rounded,
+                size: 20,
+                color: AppColors.primary.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _formatTime(isStart ? _startTime : _endTime),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.text,
                 ),
               ),
             ],
@@ -405,28 +512,51 @@ class _AddScheduleDialogState extends State<AddScheduleDialog> {
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        hintText: hint,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+  Widget _buildColorSelector() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: _colors.map((colorData) {
+          final isSelected = _selectedColor == colorData['color'];
+          final color = Color(int.parse(colorData['color'].replaceFirst('#', '0xFF')));
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedColor = colorData['color'];
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: isSelected ? 44 : 36,
+              height: isSelected ? 44 : 36,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: isSelected
+                    ? Border.all(color: Colors.white, width: 3)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.5),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
+                  : null,
+            ),
+          );
+        }).toList(),
       ),
     );
   }

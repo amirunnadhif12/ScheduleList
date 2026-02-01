@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/schedule_model.dart';
+import '../../theme.dart';
 
 class ScheduleCard extends StatelessWidget {
   final Schedule schedule;
@@ -13,43 +14,9 @@ class ScheduleCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  Color _getColorFromName(String? colorInput) {
-    if (colorInput == null || colorInput.isEmpty) {
-      return Colors.grey[50]!;
-    }
-
-    // If it's a hex color, parse it
-    if (colorInput.startsWith('#')) {
-      try {
-        final hexColor = colorInput.replaceFirst('#', '0xFF');
-        final color = Color(int.parse(hexColor));
-        // Return a lighter version for the background
-        return color.withOpacity(0.15);
-      } catch (e) {
-        return Colors.grey[50]!;
-      }
-    }
-
-    // Otherwise, use color name matching
-    switch (colorInput.toLowerCase()) {
-      case 'blue':
-        return Colors.blue[50]!;
-      case 'green':
-        return Colors.green[50]!;
-      case 'purple':
-        return Colors.purple[50]!;
-      case 'orange':
-        return Colors.orange[50]!;
-      case 'red':
-        return Colors.red[50]!;
-      default:
-        return Colors.grey[50]!;
-    }
-  }
-
   Color _getBorderColorFromName(String? colorInput) {
     if (colorInput == null || colorInput.isEmpty) {
-      return Colors.grey[300]!;
+      return AppColors.primary;
     }
 
     // If it's a hex color, parse it
@@ -58,24 +25,24 @@ class ScheduleCard extends StatelessWidget {
         final hexColor = colorInput.replaceFirst('#', '0xFF');
         return Color(int.parse(hexColor));
       } catch (e) {
-        return Colors.grey[300]!;
+        return AppColors.primary;
       }
     }
 
     // Otherwise, use color name matching
     switch (colorInput.toLowerCase()) {
       case 'blue':
-        return Colors.blue[300]!;
+        return Colors.blue;
       case 'green':
-        return Colors.green[300]!;
+        return AppColors.success;
       case 'purple':
-        return Colors.purple[300]!;
+        return Colors.purple;
       case 'orange':
-        return Colors.orange[300]!;
+        return AppColors.accent;
       case 'red':
-        return Colors.red[300]!;
+        return AppColors.overdue;
       default:
-        return Colors.grey[300]!;
+        return AppColors.primary;
     }
   }
 
@@ -83,16 +50,23 @@ class ScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _getColorFromName(schedule.color),
+        color: Colors.white,
         border: Border(
           left: BorderSide(
             color: _getBorderColorFromName(schedule.color),
             width: 4,
           ),
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,23 +77,37 @@ class ScheduleCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   schedule.activity,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.text,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               PopupMenuButton(
+                icon: Icon(Icons.more_vert, color: Colors.grey[400]),
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
-                    child: Text('Edit'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 18, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        const Text('Edit'),
+                      ],
+                    ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
-                    child: Text('Delete'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 18, color: AppColors.overdue),
+                        const SizedBox(width: 8),
+                        const Text('Hapus'),
+                      ],
+                    ),
                   ),
                 ],
                 onSelected: (value) {
@@ -132,46 +120,67 @@ class ScheduleCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
             children: [
-              Icon(
-                Icons.schedule,
-                size: 14,
-                color: Colors.grey[700],
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  Icons.schedule,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               Text(
                 '${schedule.startTime} - ${schedule.endTime}',
-                style: const TextStyle(fontSize: 12),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.text,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                size: 14,
-                color: Colors.grey[700],
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  Icons.location_on_outlined,
+                  size: 14,
+                  color: AppColors.accent,
+                ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   schedule.location,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             schedule.description,
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
+              fontSize: 13,
+              color: Colors.grey[600],
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

@@ -171,15 +171,15 @@ class Task {
     );
   }
 
-  // Helper method untuk cek apakah tugas mendekati deadline (P1)
-  bool isNearDeadline() {
+  // Helper method untuk cek apakah tugas mendekati deadline (7 hari ke depan)
+  bool isNearDeadline({int days = 7}) {
     try {
       DateTime deadlineDate = DateTime.parse(deadline);
       DateTime now = DateTime.now();
       Duration difference = deadlineDate.difference(now);
       
-      // Dianggap mendekati deadline jika kurang dari 2 hari
-      return difference.inHours <= 48 && difference.inHours > 0;
+      // Dianggap mendekati deadline jika dalam rentang hari yang ditentukan dan belum lewat
+      return difference.inDays <= days && difference.inHours > 0;
     } catch (e) {
       return false;
     }
