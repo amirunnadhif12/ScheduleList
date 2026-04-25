@@ -372,8 +372,14 @@ class TaskController {
   }
 
   Future<bool> updateTaskStatus(String id, String status, {String? imagePath}) async {
+    try {
     await _apiController.loadTasks();
-    final task = _apiController.tasks.firstWhere((t) => t.id == id);
+    final taskIndex = _apiController.tasks.indexWhere((t) => t.id == id);
+    if (taskIndex == -1) {
+      debugPrint('⚠️ Task with id $id not found');
+      return false;
+    }
+    final task = _apiController.tasks[taskIndex];
     
     // Konversi status UI ke status API
     String apiStatus = 'belum_mulai';
@@ -415,6 +421,10 @@ class TaskController {
     }
     
     return success;
+    } catch (e) {
+      debugPrint('⚠️ Error updating task status: $e');
+      return false;
+    }
   }
 
   Future<String?> uploadTaskImage(String filePath) async {

@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.schedulelist"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.2.12479018"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

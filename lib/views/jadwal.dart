@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../../models/schedule_model.dart';
+import '../../models/class_schedule_model.dart';
 import '../../controller/schedule_controller.dart';
+import '../../controller/class_schedule_controller.dart';
 import 'widgets/schedule_card.dart';
 import 'widgets/add_schedule_dialog.dart';
+import 'widgets/class_schedule_card.dart';
+import 'widgets/add_class_schedule_dialog.dart';
 import 'login.dart';
+import '../services/user_session.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final String userName;
@@ -15,16 +20,26 @@ class ScheduleScreen extends StatefulWidget {
   State<ScheduleScreen> createState() => _ScheduleScreenState();
 }
 
-class _ScheduleScreenState extends State<ScheduleScreen> {
+class _ScheduleScreenState extends State<ScheduleScreen>
+    with SingleTickerProviderStateMixin {
   final ScheduleController _scheduleController = ScheduleController();
+  final ClassScheduleController _classController = ClassScheduleController();
+  late TabController _tabController;
   late DateTime _currentMonth;
   late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _currentMonth = DateTime.now();
     _selectedDate = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   List<DateTime> _getDaysInMonth(DateTime month) {
@@ -35,8 +50,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     final days = <DateTime>[];
 
-    for (int i = 1; i < startingDayOfWeek; i++) {
-      days.add(DateTime(month.year, month.month, -(startingDayOfWeek - i)));
+    // Padding: tanggal dari bulan sebelumnya
+    for (int i = startingDayOfWeek - 1; i > 0; i--) {
+      days.add(firstDay.subtract(Duration(days: i)));
     }
 
     for (int i = 1; i <= daysInMonth; i++) {
@@ -64,6 +80,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return '${months[date.month - 1]} ${date.year}';
   }
 
+  String _getDayName(int weekday) {
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    return days[weekday - 1];
+  }
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -76,7 +97,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              await UserSession().logout();
               Navigator.pop(context);
               Navigator.pushAndRemoveUntil(
                 context,
@@ -278,71 +300,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
           ),
 
-          // Sub header
+          // ── TabBar ──────────────────────────────────────────────────────
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kelola Jadwal',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.text,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Kelola jadwal aktivitas Anda',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.text.withValues(alpha: 0.65),
-                      ),
-                    ),
-                  ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => const AddScheduleDialog(),
-                  ).then((value) {
-                    if (value == true) {
-                      setState(() {});
-                    }
-                  });
-                },
-                icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                label: const Text(
-                  'Tambah',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ],
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: AppColors.primary,
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              tabs: const [
+                Tab(icon: Icon(Icons.calendar_today_rounded, size: 18), text: 'Jadwal Harian'),
+                Tab(icon: Icon(Icons.school_rounded, size: 18), text: 'Jadwal Kuliah'),
+              ],
+            ),
           ),
-        ),
 
         Expanded(
-          child: SingleChildScrollView(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              // ── Tab 1: Jadwal Harian ──────────────────────────────────
+              SingleChildScrollView(
             child: Column(
               children: [
+                const SizedBox(height: 16),
                 // Calendar Card - Premium Design
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -825,13 +808,328 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   },
                 ),
 
+                // ── Jadwal Kuliah pada hari yang dipilih ──
+                const SizedBox(height: 16),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.primaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.school_rounded, color: Colors.white, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Jadwal Kuliah — ${_getDayName(_selectedDate.weekday)}',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                FutureBuilder<List<ClassSchedule>>(
+                  future: _classController.getClassSchedulesByDay(_selectedDate.weekday),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5)),
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.event_busy_outlined, color: Colors.grey.shade400, size: 20),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Tidak ada kuliah di hari ini',
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    final classSchedules = snapshot.data!;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: classSchedules.map((cs) {
+                          Color cardColor;
+                          try {
+                            cardColor = Color(int.parse(cs.color.replaceFirst('#', '0xFF')));
+                          } catch (_) {
+                            cardColor = AppColors.primary;
+                          }
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border(left: BorderSide(color: cardColor, width: 4)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                              child: Row(
+                                children: [
+                                  // Time column
+                                  Column(
+                                    children: [
+                                      Text(cs.startTime, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: cardColor)),
+                                      Container(
+                                        width: 1.5, height: 14,
+                                        margin: const EdgeInsets.symmetric(vertical: 3),
+                                        color: cardColor.withValues(alpha: 0.3),
+                                      ),
+                                      Text(cs.endTime, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
+                                    ],
+                                  ),
+                                  // Divider
+                                  Container(
+                                    width: 1, height: 44,
+                                    margin: const EdgeInsets.symmetric(horizontal: 14),
+                                    color: Colors.grey.shade200,
+                                  ),
+                                  // Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          cs.subject,
+                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.text),
+                                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            if (cs.room.isNotEmpty) ...[
+                                              Icon(Icons.location_on_rounded, size: 13, color: Colors.grey.shade500),
+                                              const SizedBox(width: 3),
+                                              Text(cs.room, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                              const SizedBox(width: 12),
+                                            ],
+                                            if (cs.lecturer.isNotEmpty) ...[
+                                              Icon(Icons.person_rounded, size: 13, color: Colors.grey.shade500),
+                                              const SizedBox(width: 3),
+                                              Flexible(
+                                                child: Text(cs.lecturer, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+
                 const SizedBox(height: 24),
               ],
             ),
-          ),
-        ),
-        ],
-      ),
+          ), // end Tab 1 SingleChildScrollView
+
+              // ── Tab 2: Jadwal Kuliah ──────────────────────────────────
+              _buildClassScheduleTab(),
+            ], // end TabBarView children
+          ), // end TabBarView
+        ), // end Expanded
+        ], // end Column children
+      ), // end Column
+    ); // end Container
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Tab 2 — Jadwal Kuliah Tetap
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildClassScheduleTab() {
+    const dayNames = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+
+    return FutureBuilder<Map<int, List<ClassSchedule>>>(
+      future: _classController.getScheduleGroupedByDay(),
+      builder: (context, snapshot) {
+        final grouped = snapshot.data ?? {};
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        return Stack(
+          children: [
+            // List konten
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else
+              ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                children: [
+                  // Jika belum ada data sama sekali
+                  if (grouped.values.every((list) => list.isEmpty))
+                    Container(
+                      margin: const EdgeInsets.only(top: 40),
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.school_outlined, size: 48, color: AppColors.primary),
+                          ),
+                          const SizedBox(height: 16),
+                          Text('Belum Ada Jadwal Kuliah',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.text)),
+                          const SizedBox(height: 8),
+                          Text('Tap tombol + untuk menambahkan\njadwal kuliah mingguan kamu',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    )
+                  else
+                    // Tampilkan per hari
+                    ...List.generate(7, (i) {
+                      final day = i + 1;
+                      final list = grouped[day] ?? [];
+                      if (list.isEmpty) return const SizedBox.shrink();
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header hari
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 10, top: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.primaryDark],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.calendar_today_rounded, size: 14, color: Colors.white),
+                                const SizedBox(width: 8),
+                                Text(dayNames[day],
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text('${list.length} matkul',
+                                      style: const TextStyle(fontSize: 11, color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Card per matkul
+                          ...list.map((cs) => ClassScheduleCard(
+                                schedule: cs,
+                                onEdit: () async {
+                                  final result = await showDialog(
+                                    context: context,
+                                    builder: (_) => AddClassScheduleDialog(schedule: cs),
+                                  );
+                                  if (result == true) setState(() {});
+                                },
+                                onDelete: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      title: const Text('Hapus Jadwal Kuliah'),
+                                      content: Text('Hapus ${cs.subject}?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('Batal'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                          child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true && cs.id != null) {
+                                    await _classController.deleteClassSchedule(cs.id!);
+                                    setState(() {});
+                                  }
+                                },
+                                onToggle: () async {
+                                  await _classController.toggleActive(cs);
+                                  setState(() {});
+                                },
+                              )),
+                          const SizedBox(height: 8),
+                        ],
+                      );
+                    }),
+                ],
+              ),
+
+            // FAB tambah jadwal kuliah
+            Positioned(
+              bottom: 20,
+              right: 16,
+              child: FloatingActionButton.extended(
+                onPressed: () async {
+                  final result = await showDialog(
+                    context: context,
+                    builder: (_) => const AddClassScheduleDialog(),
+                  );
+                  if (result == true) setState(() {});
+                },
+                backgroundColor: AppColors.primary,
+                icon: const Icon(Icons.add_rounded, color: Colors.white),
+                label: const Text('Tambah Matkul',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
