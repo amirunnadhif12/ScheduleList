@@ -699,7 +699,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                         margin: const EdgeInsets.all(16),
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.card,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
@@ -847,7 +847,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                         margin: const EdgeInsets.symmetric(horizontal: 16),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.card,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: Colors.grey.shade200),
                         ),
@@ -878,7 +878,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.card,
                               borderRadius: BorderRadius.circular(14),
                               border: Border(left: BorderSide(color: cardColor, width: 4)),
                               boxShadow: [
@@ -994,7 +994,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
                       margin: const EdgeInsets.only(top: 40),
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.card,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                       ),

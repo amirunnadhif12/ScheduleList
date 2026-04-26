@@ -15,7 +15,7 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -89,7 +89,7 @@ class _NavItem extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: isActive ? AppColors.primary : Colors.grey[400],
+                color: isActive ? AppColors.primary : AppColors.grey400,
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -97,7 +97,7 @@ class _NavItem extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isActive ? AppColors.primary : Colors.grey[400],
+                  color: isActive ? AppColors.primary : AppColors.grey400,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),

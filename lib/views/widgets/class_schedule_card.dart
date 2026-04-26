@@ -34,7 +34,7 @@ class ClassScheduleCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
           border: Border(
             left: BorderSide(color: cardColor, width: 4),

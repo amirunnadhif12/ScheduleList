@@ -52,7 +52,7 @@ class ScheduleCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         border: Border(
           left: BorderSide(
             color: _getBorderColorFromName(schedule.color),

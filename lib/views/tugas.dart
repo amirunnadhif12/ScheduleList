@@ -64,7 +64,7 @@ class _TaskScreenState extends State<TaskScreen> {
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -317,7 +317,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                 end: Alignment.bottomRight,
                               )
                             : null,
-                        color: isSelected ? null : Colors.white,
+                        color: isSelected ? null : AppColors.card,
                         borderRadius: BorderRadius.circular(25),
                         border: isSelected
                             ? null
@@ -370,7 +370,7 @@ class _TaskScreenState extends State<TaskScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(

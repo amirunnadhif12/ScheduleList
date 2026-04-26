@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../main.dart';
 import '../../models/task_model.dart';
 import '../../models/schedule_model.dart';
 import '../../models/class_schedule_model.dart';
@@ -330,6 +331,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             }
                           }),
                           const SizedBox(width: 8),
+                          _buildHeaderIcon(
+                            ThemeNotifierProvider.of(context).isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                            onTap: () => ThemeNotifierProvider.of(context).toggleTheme(),
+                          ),
+                          const SizedBox(width: 8),
                           _buildHeaderIcon(Icons.logout_rounded, onTap: () => _showLogoutDialog(context)),
                         ],
                       ),
@@ -536,6 +542,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
+                    childAspectRatio: 1.7,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
@@ -640,7 +647,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: AppColors.success.withValues(alpha: 0.3),
@@ -769,7 +776,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                       ),
