@@ -17,6 +17,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   late TextEditingController _subjectController;
   late TextEditingController _descriptionController;
   late TextEditingController _deadlineController;
+  late TextEditingController _timeController;
 
   String _selectedPriority = 'Sedang';
   String _selectedStatus = 'Belum Mulai';
@@ -38,6 +39,9 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
       text:
           '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
     );
+    _timeController = TextEditingController(
+      text: '${_selectedDate.hour.toString().padLeft(2, '0')}:${_selectedDate.minute.toString().padLeft(2, '0')}',
+    );
     _selectedStatus = widget.task?.status ?? 'Belum Mulai';
     _selectedProgress = widget.task?.progress ?? 0;
   }
@@ -48,6 +52,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
     _subjectController.dispose();
     _descriptionController.dispose();
     _deadlineController.dispose();
+    _timeController.dispose();
     super.dispose();
   }
 
@@ -63,6 +68,26 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
         _selectedDate = picked;
         _deadlineController.text =
             '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}';
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDate),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          picked.hour,
+          picked.minute,
+        );
+        _timeController.text =
+            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       });
     }
   }
@@ -184,6 +209,11 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                   _buildLabel('Deadline', isRequired: true),
                   const SizedBox(height: 8),
                   _buildDateSelector(context),
+                  const SizedBox(height: 16),
+
+                  _buildLabel('Waktu', isRequired: true),
+                  const SizedBox(height: 8),
+                  _buildTimeSelector(context),
                   const SizedBox(height: 16),
 
                   Row(
@@ -506,6 +536,47 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
     );
   }
 
+  Widget _buildTimeSelector(BuildContext context) {
+    return Material(
+      color: AppColors.background,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => _selectTime(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.access_time_rounded,
+                size: 20,
+                color: AppColors.accent.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _timeController.text,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.text,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.arrow_drop_down_rounded,
+                color: AppColors.text.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDropdown({
     required String value,
     required List<String> items,
@@ -526,17 +597,23 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
             value: item,
             child: Row(
               children: [
-                Icon(icon, size: 18, color: AppColors.accent.withValues(alpha: 0.7)),
+                Icon(icon, size: 18, color: AppColors.accent.withOpacity(0.7)),
                 const SizedBox(width: 8),
-                Text(item, style: TextStyle(fontSize: 14, color: AppColors.text)),
+                Expanded(
+                  child: Text(
+                    item,
+                    style: TextStyle(fontSize: 14, color: AppColors.text),
+                    overflow: TextOverflow.ellipsis, // Prevent overflow
+                  ),
+                ),
               ],
             ),
           );
         }).toList(),
         onChanged: onChanged,
-        isExpanded: true,
+        isExpanded: true, // Ensure dropdown expands to fit content
         underline: const SizedBox(),
-        icon: Icon(Icons.arrow_drop_down_rounded, color: AppColors.text.withValues(alpha: 0.5)),
+        icon: Icon(Icons.arrow_drop_down_rounded, color: AppColors.text.withOpacity(0.5)),
         dropdownColor: Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
