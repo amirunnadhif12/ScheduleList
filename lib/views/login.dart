@@ -162,7 +162,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                   width: 200,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.card,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(

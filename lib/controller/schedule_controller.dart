@@ -164,7 +164,8 @@ class ScheduleController {
         return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
       }
     } catch (_) {}
-    return '${(int.tryParse(startTime.split(':')[0]) ?? 0) + 1}:00';
+    // Safe fallback: return properly formatted default time
+    return '01:00';
   }
 
   Future<List<schedule_model.Schedule>> getSchedulesByDate(DateTime date) async {

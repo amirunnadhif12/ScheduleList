@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../main.dart';
 import '../../models/task_model.dart';
 import '../../models/schedule_model.dart';
+import '../../models/class_schedule_model.dart';
 import '../../controller/task_controller.dart';
 import '../../controller/schedule_controller.dart';
+import '../../controller/class_schedule_controller.dart';
 import '../services/user_session.dart';
 import '../services/notification_service.dart';
 import 'widgets/stats_card.dart';
 import 'widgets/task_card.dart';
 import 'widgets/schedule_card.dart';
+import 'widgets/class_schedule_card.dart';
 import 'widgets/bottom_navigation.dart';
 import 'widgets/add_schedule_dialog.dart';
 import 'login.dart';
@@ -34,6 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
   final TaskController _taskController = TaskController();
   final ScheduleController _scheduleController = ScheduleController();
+  final ClassScheduleController _classController = ClassScheduleController();
 
   late Future<Map<String, dynamic>> _dashboardData;
 
@@ -68,11 +73,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }),
         _taskController.getUpcomingDeadlines(days: 7).catchError((e) => <Task>[]),
         _scheduleController.getSchedulesByDate(DateTime.now()).catchError((e) => <Schedule>[]),
+        _classController.getTodayClassSchedules().catchError((e) => <ClassSchedule>[]),
       ]);
       return {
         'stats': results[0],
         'upcomingTasks': results[1],
         'todaySchedules': results[2],
+        'todayClassSchedules': results[3],
       };
     } catch (e) {
       return {
@@ -84,6 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         'upcomingTasks': <Task>[],
         'todaySchedules': <Schedule>[],
+        'todayClassSchedules': <ClassSchedule>[],
       };
     }
   }
@@ -217,6 +225,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildHeaderIcon(IconData icon, {required VoidCallback onTap}) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          ),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      ),
+    );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 11) return 'Selamat Pagi 🌅';
+    if (hour < 15) return 'Selamat Siang ☀️';
+    if (hour < 18) return 'Selamat Sore 🌤️';
+    return 'Selamat Malam 🌙';
+  }
+
   Widget _buildHomeScreen() {
     return RefreshIndicator(
       color: AppColors.primary,
@@ -229,154 +264,124 @@ class _DashboardScreenState extends State<DashboardScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Hero Header with Gradient
+            // ── Premium Header ──
             Container(
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primary,
-                    AppColors.primaryDark,
-                    const Color(0xFF064E4A),
+                    Color(0xFF0D9488),
+                    Color(0xFF0F766E),
+                    Color(0xFF0B5E58),
                   ],
                 ),
               ),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row - Logo & Logout
+                      // Top Bar: Logo + Actions
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(6),
-                                    child: Image.asset(
-                                      'assets/icon/logo_schedule.png',
-                                      fit: BoxFit.cover,
-                                      color: Colors.white,
-                                      colorBlendMode: BlendMode.srcIn,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(
-                                          Icons.dashboard_rounded,
-                                          color: Colors.white,
-                                          size: 22,
-                                        );
-                                      },
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(40),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 26, height: 26,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(3),
+                                      child: Image.asset(
+                                        'assets/icon/logo_schedule.png',
+                                        fit: BoxFit.cover,
+                                        color: AppColors.primary,
+                                        colorBlendMode: BlendMode.srcIn,
+                                        errorBuilder: (c, e, s) => Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 18),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              const Text(
-                                'Schedule List',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                const Text('Schedule List', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.3)),
+                              ],
+                            ),
                           ),
-                          Row(
-                            children: [
-                              // Test notification button
-                              Material(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                                child: InkWell(
-                                  onTap: () async {
-                                    await NotificationService().testNotification();
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Test notifikasi dikirim! Cek notifikasi HP Anda.'),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: Icon(
-                                      Icons.notifications_active_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Logout button
-                              Material(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                                child: InkWell(
-                                  onTap: () => _showLogoutDialog(context),
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: Icon(
-                                      Icons.logout_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          const Spacer(),
+                          _buildHeaderIcon(Icons.notifications_active_rounded, onTap: () async {
+                            await NotificationService().testNotification();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Test notifikasi dikirim!'), backgroundColor: Colors.green));
+                            }
+                          }),
+                          const SizedBox(width: 8),
+                          _buildHeaderIcon(
+                            ThemeNotifierProvider.of(context).isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                            onTap: () => ThemeNotifierProvider.of(context).toggleTheme(),
                           ),
+                          const SizedBox(width: 8),
+                          _buildHeaderIcon(Icons.logout_rounded, onTap: () => _showLogoutDialog(context)),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      // Welcome Text
-                      Text(
-                        'Halo, ${widget.userName}! 👋',
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 28),
+                      // Greeting
+                      Text(_getGreeting(), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.8), letterSpacing: 0.5)),
+                      const SizedBox(height: 4),
+                      Text(widget.userName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5, height: 1.2)),
+                      const SizedBox(height: 18),
+                      // Date Card
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.calendar_today_rounded,
-                              size: 14,
-                              color: Colors.white70,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.calendar_today_rounded, size: 18, color: Colors.white),
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _getFormaltedDate(),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white70,
-                                fontWeight: FontWeight.w500,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Hari Ini', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.7), letterSpacing: 0.5)),
+                                  const SizedBox(height: 2),
+                                  Text(_getFormaltedDate(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                                ],
+                              ),
+                            ),
+                            Material(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InkWell(
+                                onTap: () {
+                                  showDialog(context: context, builder: (context) => const AddScheduleDialog()).then((value) {
+                                    if (value == true) _loadDashboardData();
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: const Padding(padding: EdgeInsets.all(8), child: Icon(Icons.add_rounded, size: 20, color: Colors.white)),
                               ),
                             ),
                           ],
@@ -537,6 +542,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
+                    childAspectRatio: 1.7,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
@@ -641,7 +647,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: AppColors.success.withValues(alpha: 0.3),
@@ -757,25 +763,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SizedBox.shrink();
                 }
-
-                if (!snapshot.hasData) {
-                  return const SizedBox.shrink();
-                }
+                if (!snapshot.hasData) return const SizedBox.shrink();
 
                 final data = snapshot.data as Map<String, dynamic>;
                 final schedules = data['todaySchedules'] as List<Schedule>;
+                final classSchedules = data['todayClassSchedules'] as List<ClassSchedule>;
+                final hasAnything = schedules.isNotEmpty || classSchedules.isNotEmpty;
 
-                if (schedules.isEmpty) {
+                if (!hasAnything) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                        ),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -785,33 +788,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              Icons.event_available_rounded,
-                              color: AppColors.primary,
-                              size: 28,
-                            ),
+                            child: Icon(Icons.event_available_rounded, color: AppColors.primary, size: 28),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Hari Bebas! ☀️',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: AppColors.text,
-                                  ),
-                                ),
+                                Text('Hari Bebas! ☀️',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.text)),
                                 const SizedBox(height: 4),
-                                Text(
-                                  'Tidak ada jadwal untuk hari ini',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 13,
-                                  ),
-                                ),
+                                Text('Tidak ada jadwal untuk hari ini',
+                                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                               ],
                             ),
                           ),
@@ -822,29 +810,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 }
 
                 return Column(
-                  children: schedules
-                      .map(
-                        (schedule) => ScheduleCard(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Jadwal harian biasa
+                    ...schedules.map((schedule) => ScheduleCard(
                           schedule: schedule,
                           onEdit: () async {
                             final result = await showDialog(
                               context: context,
-                              builder: (context) => AddScheduleDialog(
-                                schedule: schedule,
-                              ),
+                              builder: (context) => AddScheduleDialog(schedule: schedule),
                             );
-                            if (result == true) {
-                              _loadDashboardData();
-                            }
+                            if (result == true) _loadDashboardData();
                           },
                           onDelete: () async {
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Hapus Jadwal'),
-                                content: const Text(
-                                  'Apakah Anda yakin ingin menghapus jadwal ini?',
-                                ),
+                                content: const Text('Apakah Anda yakin ingin menghapus jadwal ini?'),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context, false),
@@ -852,33 +835,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   ElevatedButton(
                                     onPressed: () => Navigator.pop(context, true),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                    ),
-                                    child: const Text(
-                                      'Hapus',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    child: const Text('Hapus', style: TextStyle(color: Colors.white)),
                                   ),
                                 ],
                               ),
                             );
-                            
                             if (confirm == true && schedule.id != null) {
                               final success = await _scheduleController.deleteSchedule(schedule.id!);
                               if (success && mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Jadwal berhasil dihapus'),
-                                  ),
+                                  const SnackBar(content: Text('Jadwal berhasil dihapus')),
                                 );
                                 _loadDashboardData();
                               }
                             }
                           },
+                        )),
+
+                    // Jadwal kuliah hari ini
+                    if (classSchedules.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.school_rounded, size: 16, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Text('Kuliah Hari Ini',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary)),
+                          ],
                         ),
-                      )
-                      .toList(),
+                      ),
+                      ...classSchedules.map((cs) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: ClassScheduleCard(
+                              schedule: cs,
+                              onEdit: () {},
+                              onDelete: () {},
+                              onToggle: () {},
+                            ),
+                          )),
+                    ],
+                  ],
                 );
               },
             ),
