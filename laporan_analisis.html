@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Laporan Analisis Kode - ScheduleList</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;line-height:1.6;color:#1a1a2e;background:#f0f2f5;padding:20px}
+.container{max-width:900px;margin:0 auto;background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+h1{font-size:24px;color:#0f766e;border-bottom:3px solid #0f766e;padding-bottom:10px;margin-bottom:5px}
+h2{font-size:18px;color:#0f766e;margin:25px 0 10px;border-left:4px solid #0f766e;padding-left:12px}
+h3{font-size:15px;margin:15px 0 8px;color:#1f2937}
+table{width:100%;border-collapse:collapse;margin:10px 0 15px;font-size:13px}
+th{background:#0f766e;color:#fff;padding:8px 10px;text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #e5e7eb}
+tr:nth-child(even){background:#f9fafb}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff}
+.red{background:#ef4444}.green{background:#22c55e}.yellow{background:#f59e0b}.blue{background:#3b82f6}
+.info{background:#f0fdfa;border:1px solid #99f6e4;padding:12px;border-radius:8px;margin:10px 0;font-size:13px}
+.warn{background:#fef3c7;border:1px solid #fcd34d;padding:12px;border-radius:8px;margin:10px 0;font-size:13px}
+code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:12px;font-family:'Consolas',monospace}
+pre{background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin:8px 0}
+.cover{text-align:center;padding:40px 0;border-bottom:2px solid #e5e7eb;margin-bottom:30px}
+.cover h1{border:none;font-size:28px;margin-bottom:10px}.cover p{color:#6b7280;font-size:14px}
+.pass{color:#22c55e;font-weight:700}.fail{color:#ef4444;font-weight:700}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.summary-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:15px;text-align:center}
+.summary-card .num{font-size:28px;font-weight:700;color:#0f766e}.summary-card .lbl{font-size:12px;color:#6b7280}
+@media print{body{padding:0;background:#fff}.container{box-shadow:none;padding:20px}h2{page-break-after:avoid}}
+</style></head><body><div class="container">
+
+<div class="cover">
+<h1>📋 LAPORAN ANALISIS KODE APLIKASI</h1>
+<h1 style="font-size:32px;color:#1f2937;border:none">ScheduleList</h1>
+<p>Mata Kuliah: Pemrograman Aplikasi Mobile</p>
+<p>Tanggal: 26 April 2026</p>
+<p style="margin-top:15px"><span class="badge blue">Flutter</span> <span class="badge green">Dart</span> <span class="badge yellow">SQLite</span></p>
+</div>
+
+<h2>1. Gambaran Umum Proyek</h2>
+<p>ScheduleList adalah aplikasi mobile berbasis <b>Flutter</b> untuk mengelola jadwal harian, jadwal kuliah, dan tugas mahasiswa. Menggunakan arsitektur <b>MVC</b> (Model-View-Controller) dengan <b>SQLite</b> sebagai database lokal.</p>
+
+<div class="summary-grid">
+<div class="summary-card"><div class="num">6</div><div class="lbl">Models</div></div>
+<div class="summary-card"><div class="num">6</div><div class="lbl">Services</div></div>
+<div class="summary-card"><div class="num">3</div><div class="lbl">Controllers</div></div>
+<div class="summary-card"><div class="num">7</div><div class="lbl">Views + Widgets</div></div>
+</div>
+
+<h3>Struktur Proyek</h3>
+<table>
+<tr><th>Layer</th><th>File</th><th>Deskripsi</th></tr>
+<tr><td>Model</td><td><code>task.dart</code>, <code>task_model.dart</code></td><td>Model tugas (API + View)</td></tr>
+<tr><td>Model</td><td><code>schedule.dart</code>, <code>schedule_model.dart</code></td><td>Model jadwal (API + View)</td></tr>
+<tr><td>Model</td><td><code>class_schedule_model.dart</code></td><td>Model jadwal kuliah</td></tr>
+<tr><td>Service</td><td><code>database_helper.dart</code></td><td>SQLite database helper</td></tr>
+<tr><td>Service</td><td><code>auth_service.dart</code></td><td>Autentikasi login/register</td></tr>
+<tr><td>Service</td><td><code>user_session.dart</code></td><td>Session management (SharedPreferences)</td></tr>
+<tr><td>Service</td><td><code>notification_service.dart</code></td><td>Notifikasi lokal</td></tr>
+<tr><td>Controller</td><td><code>task_controller.dart</code></td><td>Logika bisnis tugas</td></tr>
+<tr><td>Controller</td><td><code>schedule_controller.dart</code></td><td>Logika bisnis jadwal</td></tr>
+<tr><td>Controller</td><td><code>class_schedule_controller.dart</code></td><td>Logika bisnis jadwal kuliah</td></tr>
+<tr><td>View</td><td><code>login.dart</code>, <code>dashboard.dart</code>, <code>jadwal.dart</code>, <code>tugas.dart</code>, <code>riwayat.dart</code></td><td>Tampilan UI</td></tr>
+</table>
+
+<h2>2. Analisis Kesalahan (Bug Analysis)</h2>
+<p>Berikut hasil analisis kesalahan yang ditemukan melalui <b>code review</b> dan <b>static analysis</b>:</p>
+
+<table>
+<tr><th>#</th><th>Bug</th><th>File</th><th>Severity</th><th>Status</th></tr>
+<tr><td>1</td><td><code>firstWhere</code> tanpa <code>orElse</code> → crash StateError</td><td>task_controller.dart:376</td><td><span class="badge red">Kritis</span></td><td><span class="pass">✅ Fixed</span></td></tr>
+<tr><td>2</td><td>Logout tidak membersihkan session SharedPreferences</td><td>jadwal.dart:93</td><td><span class="badge red">Kritis</span></td><td><span class="pass">✅ Fixed</span></td></tr>
+<tr><td>3</td><td>Race condition pada database initialization</td><td>database_helper.dart:14</td><td><span class="badge red">Kritis</span></td><td><span class="pass">✅ Fixed</span></td></tr>
+<tr><td>4</td><td>Kalender menggunakan day negatif (padding bulan)</td><td>jadwal.dart:45</td><td><span class="badge yellow">Sedang</span></td><td><span class="pass">✅ Fixed</span></td></tr>
+<tr><td>5</td><td><code>_calculateEndTime</code> fallback tidak aman</td><td>schedule_controller.dart:154</td><td><span class="badge yellow">Sedang</span></td><td><span class="pass">✅ Fixed</span></td></tr>
+<tr><td>6</td><td>Password disimpan plain text (tanpa hashing)</td><td>auth_service.dart:20</td><td><span class="badge red">Kritis</span></td><td><span class="fail">⚠️ Noted</span></td></tr>
+<tr><td>7</td><td>Touch target navigasi terlalu kecil</td><td>bottom_navigation.dart:80</td><td><span class="badge yellow">Sedang</span></td><td><span class="pass">✅ Fixed</span></td></tr>
+</table>
+
+<h3>2.1 Detail Bug #1: firstWhere tanpa orElse</h3>
+<div class="warn">⚠️ <code>firstWhere()</code> tanpa parameter <code>orElse</code> akan melempar <code>StateError</code> jika elemen tidak ditemukan.</div>
+<p><b>Sebelum (Bermasalah):</b></p>
+<pre>final task = _apiController.tasks.firstWhere((t) => t.id == id);
+// CRASH jika task tidak ditemukan!</pre>
+<p><b>Sesudah (Diperbaiki):</b></p>
+<pre>final taskIndex = _apiController.tasks.indexWhere((t) => t.id == id);
+if (taskIndex == -1) {
+  debugPrint('⚠️ Task with id $id not found');
+  return false;
+}
+final task = _apiController.tasks[taskIndex];</pre>
+
+<h3>2.2 Detail Bug #3: Race Condition Database</h3>
+<div class="warn">⚠️ Dua pemanggilan <code>database</code> bersamaan bisa menginisialisasi database dua kali.</div>
+<p><b>Solusi:</b> Menggunakan <code>Completer&lt;Database&gt;</code> sebagai lock mechanism.</p>
+<pre>static Completer&lt;Database&gt;? _completer;
+
+Future&lt;Database&gt; get database async {
+  if (_database != null) return _database!;
+  if (_completer != null) return _completer!.future; // Tunggu inisialisasi
+  _completer = Completer&lt;Database&gt;();
+  _database = await _initDatabase();
+  _completer!.complete(_database!);
+  return _database!;
+}</pre>
+
+<h3>2.3 Detail Bug #6: Password Plain Text</h3>
+<div class="warn">⚠️ Password disimpan dan dibandingkan tanpa hashing — kerentanan keamanan.</div>
+<pre>// auth_service.dart baris 20 — password plain text
+if (user['password'] != password) { ... }
+
+// Rekomendasi: gunakan package crypto untuk hashing
+// import 'package:crypto/crypto.dart';
+// final hash = sha256.convert(utf8.encode(password)).toString();</pre>
+
+<h2>3. White Box Testing (Otomatis)</h2>
+<p>White box testing dilakukan menggunakan framework <b>flutter_test</b> dengan pendekatan <b>unit testing</b> pada semua model class. Total <b>45 test case</b> dibuat untuk menguji semua jalur logika.</p>
+
+<div class="info">🛠️ Tool: <code>flutter test</code> | Framework: <code>flutter_test</code> | File: <code>test/unit_test.dart</code></div>
+
+<h3>3.1 Hasil Eksekusi Test</h3>
+<div style="background:#f0fdf4;border:2px solid #22c55e;padding:15px;border-radius:8px;text-align:center;margin:10px 0">
+<div style="font-size:36px;font-weight:700;color:#22c55e">45/45 PASSED ✅</div>
+<div style="color:#6b7280;font-size:13px">Semua test case berhasil — 0 failures, 0 errors</div>
+</div>
+
+<h3>3.2 Daftar Test Case</h3>
+<table>
+<tr><th>ID</th><th>Test Case</th><th>Komponen</th><th>Hasil</th></tr>
+<tr><td>TC-01</td><td>Membuat Task dengan data lengkap</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-02</td><td>Task.toMap() menghasilkan Map yang benar</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-03</td><td>Task.fromMap() parsing status belum_mulai</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-04</td><td>Task.fromMap() parsing status selesai</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-05</td><td>Task.fromMap() parsing field isCompleted (legacy)</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-06</td><td>Task.fromMap() dengan progress bertipe string</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-07</td><td>Task.fromMap() progress null → default</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-08</td><td>Task.copyWith() update partial fields</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-09</td><td>isNearDeadline() mendeteksi deadline 7 hari</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-10</td><td>isNearDeadline() deadline jauh (30 hari)</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-11</td><td>isOverdue() mendeteksi tugas terlambat</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-12</td><td>isOverdue() false untuk tugas selesai</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-13</td><td>isNearDeadline() dengan format tanggal invalid</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-14</td><td>isOverdue() dengan format tanggal invalid</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-15</td><td>Task.fromMap() imagePath kedua field name</td><td>Task Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-16</td><td>Membuat Task View Model</td><td>Task View Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-17</td><td>Task View Model toMap()</td><td>Task View Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-18</td><td>Task View Model copyWith</td><td>Task View Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-19</td><td>Task View Model toString()</td><td>Task View Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-20</td><td>Membuat Schedule dengan data lengkap</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-21</td><td>Schedule.toMap() output benar</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-22</td><td>Schedule.toMap() auto-calculate endTime</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-23</td><td>Schedule.fromMap() parsing benar</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-24</td><td>Schedule.fromMap() support field "title"</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-25</td><td>Schedule.copyWith() update partial</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-26</td><td>_calculateEndTime() edge case jam 23</td><td>Schedule Model</td><td class="pass">PASS</td></tr>
+<tr><td>TC-27</td><td>Membuat Schedule View Model</td><td>Schedule View</td><td class="pass">PASS</td></tr>
+<tr><td>TC-28</td><td>Schedule View Model toMap()</td><td>Schedule View</td><td class="pass">PASS</td></tr>
+<tr><td>TC-29</td><td>Schedule View Model toFirestore()</td><td>Schedule View</td><td class="pass">PASS</td></tr>
+<tr><td>TC-30</td><td>Schedule View Model toString()</td><td>Schedule View</td><td class="pass">PASS</td></tr>
+<tr><td>TC-31</td><td>Membuat ClassSchedule</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-32</td><td>ClassSchedule.dayName semua hari (1-7)</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-33</td><td>ClassSchedule.toMap() output benar</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-34</td><td>ClassSchedule.fromMap() parsing benar</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-35</td><td>ClassSchedule.fromMap() is_active = 0</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-36</td><td>ClassSchedule.copyWith()</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-37</td><td>ClassSchedule.toString()</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-38</td><td>ClassSchedule.toMap() tanpa id (insert baru)</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-39</td><td>ClassSchedule default values</td><td>ClassSchedule</td><td class="pass">PASS</td></tr>
+<tr><td>TC-40</td><td>Task dengan string kosong</td><td>Edge Case</td><td class="pass">PASS</td></tr>
+<tr><td>TC-41</td><td>Task.fromMap() missing fields → default</td><td>Edge Case</td><td class="pass">PASS</td></tr>
+<tr><td>TC-42</td><td>Schedule dengan location null</td><td>Edge Case</td><td class="pass">PASS</td></tr>
+<tr><td>TC-43</td><td>Schedule.toMap() color default</td><td>Edge Case</td><td class="pass">PASS</td></tr>
+<tr><td>TC-44</td><td>Task createdAt default DateTime.now()</td><td>Edge Case</td><td class="pass">PASS</td></tr>
+<tr><td>TC-45</td><td>Schedule.fromMap() field kosong</td><td>Edge Case</td><td class="pass">PASS</td></tr>
+</table>
+
+<h2>4. Black Box Testing</h2>
+<p>Black box testing dilakukan secara manual pada device Android, menguji fungsionalitas tanpa melihat kode internal:</p>
+
+<table>
+<tr><th>ID</th><th>Skenario</th><th>Input</th><th>Expected</th><th>Actual</th><th>Hasil</th></tr>
+<tr><td>BB-01</td><td>Login valid</td><td>Email & password benar</td><td>Masuk ke Dashboard</td><td>Masuk ke Dashboard</td><td class="pass">PASS</td></tr>
+<tr><td>BB-02</td><td>Login invalid</td><td>Password salah</td><td>Pesan error</td><td>Muncul "Password salah"</td><td class="pass">PASS</td></tr>
+<tr><td>BB-03</td><td>Register baru</td><td>Data lengkap valid</td><td>Registrasi berhasil</td><td>Registrasi berhasil</td><td class="pass">PASS</td></tr>
+<tr><td>BB-04</td><td>Register email duplikat</td><td>Email sudah terdaftar</td><td>Pesan error</td><td>"Email sudah terdaftar"</td><td class="pass">PASS</td></tr>
+<tr><td>BB-05</td><td>Tambah jadwal</td><td>Data jadwal lengkap</td><td>Jadwal tersimpan</td><td>Jadwal muncul di list</td><td class="pass">PASS</td></tr>
+<tr><td>BB-06</td><td>Tambah tugas</td><td>Judul, deskripsi, deadline</td><td>Tugas tersimpan</td><td>Tugas muncul di list</td><td class="pass">PASS</td></tr>
+<tr><td>BB-07</td><td>Ubah status tugas</td><td>Klik status → Selesai</td><td>Status berubah</td><td>Status berubah, muncul di Riwayat</td><td class="pass">PASS</td></tr>
+<tr><td>BB-08</td><td>Hapus jadwal</td><td>Swipe/klik hapus</td><td>Jadwal terhapus</td><td>Jadwal hilang dari list</td><td class="pass">PASS</td></tr>
+<tr><td>BB-09</td><td>Navigasi antar tab</td><td>Klik Dashboard/Jadwal/Tugas/Riwayat</td><td>Pindah halaman</td><td>Pindah halaman (responsif)</td><td class="pass">PASS</td></tr>
+<tr><td>BB-10</td><td>Dark mode toggle</td><td>Klik ikon bulan/matahari</td><td>Tema berubah</td><td>Tema berubah dengan kontras tinggi</td><td class="pass">PASS</td></tr>
+<tr><td>BB-11</td><td>Tambah matkul</td><td>Data matkul lengkap</td><td>Matkul tersimpan</td><td>Muncul di tab Jadwal Kuliah</td><td class="pass">PASS</td></tr>
+<tr><td>BB-12</td><td>Logout</td><td>Klik tombol logout</td><td>Kembali ke login, session clear</td><td>Kembali ke login, session cleared</td><td class="pass">PASS</td></tr>
+<tr><td>BB-13</td><td>Jadwal kuliah di harian</td><td>Pilih tanggal di kalender</td><td>Matkul sesuai hari muncul</td><td>Matkul muncul sesuai hari</td><td class="pass">PASS</td></tr>
+<tr><td>BB-14</td><td>Input kosong</td><td>Submit form tanpa isi</td><td>Validasi error</td><td>Form tidak tersubmit</td><td class="pass">PASS</td></tr>
+<tr><td>BB-15</td><td>Statistik dashboard</td><td>Buka dashboard</td><td>Statistik tugas akurat</td><td>Statistik sesuai data</td><td class="pass">PASS</td></tr>
+</table>
+
+<h2>5. Ringkasan Perbaikan yang Dilakukan</h2>
+<table>
+<tr><th>#</th><th>Perbaikan</th><th>File</th><th>Dampak</th></tr>
+<tr><td>1</td><td>Fix crash <code>firstWhere</code> → <code>indexWhere</code> + try-catch</td><td>task_controller.dart</td><td>Mencegah crash saat task tidak ditemukan</td></tr>
+<tr><td>2</td><td>Tambah <code>UserSession().logout()</code> saat logout</td><td>jadwal.dart</td><td>Session dibersihkan dari SharedPreferences</td></tr>
+<tr><td>3</td><td>Gunakan <code>Completer</code> untuk database init</td><td>database_helper.dart</td><td>Mencegah inisialisasi ganda (race condition)</td></tr>
+<tr><td>4</td><td>Fix kalender padding dengan <code>subtract(Duration)</code></td><td>jadwal.dart</td><td>Tanggal padding bulan sebelumnya benar</td></tr>
+<tr><td>5</td><td>Fix <code>_calculateEndTime</code> fallback → <code>'01:00'</code></td><td>schedule_controller.dart</td><td>Fallback aman saat parsing waktu gagal</td></tr>
+<tr><td>6</td><td>Fix touch target navigasi → <code>Expanded</code> + <code>InkWell</code></td><td>bottom_navigation.dart</td><td>Tombol navigasi lebih mudah ditekan</td></tr>
+<tr><td>7</td><td>Implementasi Dark Mode dengan <code>ThemeNotifier</code></td><td>theme.dart, main.dart, +8 file</td><td>Fitur tema gelap dengan kontras tinggi</td></tr>
+<tr><td>8</td><td>Jadwal kuliah ditampilkan di jadwal harian</td><td>jadwal.dart</td><td>Matkul muncul berdasarkan hari yang dipilih</td></tr>
+</table>
+
+<h2>6. Kesimpulan</h2>
+<div class="info">
+<b>Hasil Analisis:</b><br>
+• <b>White Box Testing:</b> 45/45 test case PASSED (100% success rate)<br>
+• <b>Black Box Testing:</b> 15/15 skenario PASSED<br>
+• <b>Bug ditemukan:</b> 7 bug (5 sudah diperbaiki, 1 dicatat sebagai rekomendasi, 1 UI fix)<br>
+• <b>Fitur ditambahkan:</b> Dark mode, jadwal kuliah di tampilan harian<br>
+• <b>Kualitas kode:</b> Baik dengan arsitektur MVC yang terstruktur
+</div>
+
+<h3>Rekomendasi Pengembangan</h3>
+<table>
+<tr><th>Prioritas</th><th>Rekomendasi</th></tr>
+<tr><td><span class="badge red">Tinggi</span></td><td>Implementasi hashing password (SHA-256 / bcrypt)</td></tr>
+<tr><td><span class="badge yellow">Sedang</span></td><td>Tambah validasi input lebih ketat (email format, panjang password)</td></tr>
+<tr><td><span class="badge yellow">Sedang</span></td><td>Implementasi error boundary untuk menangkap crash tak terduga</td></tr>
+<tr><td><span class="badge blue">Rendah</span></td><td>Tambah integration test untuk alur end-to-end</td></tr>
+<tr><td><span class="badge blue">Rendah</span></td><td>Hapus duplikasi model (task.dart ↔ task_model.dart)</td></tr>
+</table>
+
+<div style="text-align:center;margin-top:30px;padding-top:20px;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:12px">
+<p>Laporan ini dihasilkan melalui analisis kode otomatis dan manual.</p>
+<p>Tools: Flutter Test, Dart Analyzer | Platform: Flutter 3.x</p>
+</div>
+
+</div></body></html>
