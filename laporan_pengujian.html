@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Laporan Hasil Pengujian - ScheduleList</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box }
+    body { font-family: 'Segoe UI', sans-serif; font-size: 13px; line-height: 1.5; color: #1a1a2e; padding: 30px 40px }
+    h1 { font-size: 20px; text-align: center; margin: 5px 0 }
+    h2 { font-size: 16px; margin: 20px 0 8px; border-bottom: 2px solid #0f766e; padding-bottom: 4px; color: #0f766e }
+    h3 { font-size: 14px; margin: 14px 0 6px }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 12px }
+    th { background: #0f766e; color: #fff; padding: 6px 8px; text-align: left; font-size: 11px }
+    td { padding: 5px 8px; border: 1px solid #ddd }
+    tr:nth-child(even) { background: #f9fafb }
+    .pass { color: #16a34a; font-weight: 700 }
+    .fail { color: #dc2626; font-weight: 700 }
+    .center { text-align: center }
+    .box { border: 1px solid #ddd; padding: 10px; margin: 8px 0; border-radius: 6px; background: #f9fafb }
+    code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 11px }
+    pre { background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; font-size: 11px; overflow-x: auto; margin: 6px 0; white-space: pre-wrap }
+    .badge { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10px; font-weight: 600; color: #fff }
+    .r { background: #ef4444 } .g { background: #22c55e } .y { background: #f59e0b } .b { background: #3b82f6 }
+    .pagebreak { page-break-before: always }
+    @media print { body { padding: 15px 25px } h2 { page-break-after: avoid } .pagebreak { page-break-before: always } }
+  </style>
+</head>
+
+<body>
+
+  <div class="center" style="margin-bottom:20px">
+    <h1 style="font-size:16px;color:#333">LAPORAN HASIL PENGUJIAN PERANGKAT LUNAK</h1>
+    <h1 style="font-size:22px;color:#0f766e">Aplikasi ScheduleList</h1>
+  </div>
+  <table style="width:60%;margin:0 auto 20px;font-size:13px">
+    <tr><td style="width:180px;border:1px solid #ccc;padding:8px;font-weight:700">Nama Pengembang</td><td style="width:10px;border:1px solid #ccc;padding:8px;text-align:center">:</td><td style="border:1px solid #ccc;padding:8px">Muhammad Amirun Nadhif</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:8px;font-weight:700">NIM</td><td style="border:1px solid #ccc;padding:8px;text-align:center">:</td><td style="border:1px solid #ccc;padding:8px">3012310019</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:8px;font-weight:700">Tanggal Uji</td><td style="border:1px solid #ccc;padding:8px;text-align:center">:</td><td style="border:1px solid #ccc;padding:8px">25 April 2025</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:8px;font-weight:700">Versi Sistem</td><td style="border:1px solid #ccc;padding:8px;text-align:center">:</td><td style="border:1px solid #ccc;padding:8px">1.0.0</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:8px;font-weight:700">Environment</td><td style="border:1px solid #ccc;padding:8px;text-align:center">:</td><td style="border:1px solid #ccc;padding:8px">Flutter 3.x | Dart 3.8 | flutter_test | Windows 11</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:8px;font-weight:700">Penguji</td><td style="border:1px solid #ccc;padding:8px;text-align:center">:</td><td style="border:1px solid #ccc;padding:8px"></td></tr>
+  </table>
+
+  <h2>1. RINGKASAN EKSEKUTIF</h2>
+  <p>Pengujian dilakukan terhadap aplikasi ScheduleList yang dikembangkan menggunakan Flutter/Dart. Pengujian mencakup
+    dua level: <b>Unit Testing</b> dan <b>Integration Testing</b> dengan total <b>20 test case</b> yang seluruhnya
+    berhasil lulus.</p>
+  <table>
+    <tr><th>Level Pengujian</th><th>Total Test Case</th><th>Passed</th><th>Failed</th></tr>
+    <tr><td>Unit Testing (White Box)</td><td class="center">15</td><td class="center pass">15</td><td class="center">0</td></tr>
+    <tr><td>Integration Testing</td><td class="center">5</td><td class="center pass">5</td><td class="center">0</td></tr>
+    <tr><td><b>TOTAL</b></td><td class="center"><b>20</b></td><td class="center pass"><b>20</b></td><td class="center"><b>0 (0%)</b></td></tr>
+  </table>
+
+  <h2>2. ANALISIS KODE</h2>
+  <h3>2.1 Fungsi/Metode yang Diuji</h3>
+  <table>
+    <tr><th>Komponen</th><th>Fungsi/Metode</th><th>Parameter Input</th><th>Output</th><th>Kondisi Error</th></tr>
+    <tr>
+      <td rowspan="5">Task Model<br><code>task.dart</code></td>
+      <td><code>Task()</code></td><td>title, description, subject, deadline, priority</td><td>Object Task</td><td>-</td>
+    </tr>
+    <tr><td><code>toMap()</code></td><td>-</td><td>Map&lt;String, dynamic&gt;</td><td>-</td></tr>
+    <tr><td><code>fromMap(map)</code></td><td>Map dari database</td><td>Object Task</td><td>Field null/missing, format invalid</td></tr>
+    <tr><td><code>isNearDeadline()</code></td><td>days (int, default 7)</td><td>bool</td><td>Format deadline invalid</td></tr>
+    <tr><td><code>isOverdue()</code></td><td>-</td><td>bool</td><td>Format deadline invalid</td></tr>
+    <tr>
+      <td rowspan="3">Schedule Model<br><code>schedule.dart</code></td>
+      <td><code>Schedule()</code></td><td>title, date, time, description</td><td>Object Schedule</td><td>-</td>
+    </tr>
+    <tr><td><code>toMap()</code></td><td>-</td><td>Map&lt;String, dynamic&gt;</td><td>endTime null → auto-calc</td></tr>
+    <tr><td><code>fromMap(map)</code></td><td>Map dari database</td><td>Object Schedule</td><td>Field name variations</td></tr>
+    <tr>
+      <td rowspan="4">ClassSchedule<br><code>class_schedule_model.dart</code></td>
+      <td><code>ClassSchedule()</code></td><td>userId, subject, dayOfWeek, startTime, endTime</td><td>Object ClassSchedule</td><td>-</td>
+    </tr>
+    <tr><td><code>toMap()</code></td><td>-</td><td>Map&lt;String, dynamic&gt;</td><td>id null → exclude</td></tr>
+    <tr><td><code>fromMap(map)</code></td><td>Map dari database</td><td>Object ClassSchedule</td><td>is_active null → default 1</td></tr>
+    <tr><td><code>dayName</code> (getter)</td><td>-</td><td>String nama hari</td><td>dayOfWeek di luar 1-7</td></tr>
+  </table>
+
+  <h2>3. HASIL UNIT TESTING (WHITE BOX)</h2>
+  <h3>3.1 Rekap Test Suite</h3>
+  <table>
+    <tr><th>Test Suite</th><th>Komponen Diuji</th><th>Jumlah TC</th><th>Passed</th><th>Status</th></tr>
+    <tr><td>Task Model (API) Tests</td><td>Task constructor, toMap, fromMap, copyWith, isNearDeadline, isOverdue</td><td class="center">7</td><td class="center">7</td><td class="pass center">PASS</td></tr>
+    <tr><td>Schedule Model (API) Tests</td><td>Schedule constructor, toMap, fromMap, auto-calculate endTime</td><td class="center">3</td><td class="center">3</td><td class="pass center">PASS</td></tr>
+    <tr><td>ClassSchedule Model Tests</td><td>ClassSchedule constructor, toMap, fromMap, copyWith, dayName, defaults</td><td class="center">5</td><td class="center">5</td><td class="pass center">PASS</td></tr>
+    <tr><td colspan="2"><b>TOTAL</b></td><td class="center"><b>15</b></td><td class="center"><b>15</b></td><td class="pass center"><b>PASS</b></td></tr>
+  </table>
+
+  <h3>3.2 Kode Test (White Box) — Contoh Penting</h3>
+  <p><b>Test Case TC-06: isOverdue() mendeteksi tugas terlambat</b></p>
+  <pre>test('TC-06: Task.isOverdue() mendeteksi tugas terlambat', () {
+  final pastDate = DateTime.now().subtract(const Duration(days: 5));
+  final task = Task(
+    title: 'Overdue Task', description: 'Desc',
+    subject: 'Test', deadline: pastDate.toIso8601String(),
+    priority: 'Important P1', isCompleted: false,
+  );
+  expect(task.isOverdue(), true);
+});</pre>
+
+  <p><b>Test Case TC-07: isNearDeadline() dengan format tanggal invalid</b></p>
+  <pre>test('TC-07: Task.isNearDeadline() dengan deadline format invalid', () {
+  final task = Task(
+    title: 'Invalid Date', description: 'Desc',
+    subject: 'Test', deadline: 'bukan-tanggal',
+    priority: 'sedang',
+  );
+  // Harus return false, bukan crash
+  expect(task.isNearDeadline(), false);
+});</pre>
+
+  <p><b>Kode lengkap: </b><code>test/unit_test.dart</code> (15 test case)</p>
+
+  <h3>3.3 Tabel Unit Testing (Black Box)</h3>
+  <p><b>Nama Modul:</b> Modul Task Management &nbsp;|&nbsp; <b>Tester:</b> _________________________</p>
+  <table>
+    <tr><th>ID</th><th>Fungsi yang Diuji</th><th>Input Data</th><th>Hasil yang Diharapkan</th><th>Hasil Aktual</th><th>Status</th></tr>
+    <tr><td>UT-01</td><td>Login valid</td><td>Email & password benar</td><td>Masuk ke Dashboard</td><td>Masuk ke Dashboard</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-02</td><td>Login invalid</td><td>Password salah</td><td>Pesan "Password salah"</td><td>Muncul "Password salah"</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-03</td><td>Tambah tugas</td><td>Judul, subject, deadline</td><td>Tugas tersimpan</td><td>Muncul di list tugas</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-04</td><td>Tambah tugas (input kosong)</td><td>Form kosong, submit</td><td>Validasi error</td><td>Form tidak tersubmit</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-05</td><td>Ubah status tugas</td><td>Klik → Selesai</td><td>Status berubah</td><td>Status = Selesai</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-06</td><td>Hapus tugas</td><td>Klik hapus + konfirmasi</td><td>Tugas terhapus</td><td>Tugas hilang dari list</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-07</td><td>Tambah jadwal</td><td>Aktivitas, tanggal, waktu</td><td>Jadwal tersimpan</td><td>Muncul di kalender</td><td class="pass">PASS</td></tr>
+    <tr><td>UT-08</td><td>Tambah matkul</td><td>Nama, dosen, ruangan, hari</td><td>Matkul tersimpan</td><td>Muncul di tab Jadwal Kuliah</td><td class="pass">PASS</td></tr>
+  </table>
+
+  <div class="pagebreak"></div>
+
+  <h2>4. HASIL INTEGRATION TESTING</h2>
+  <h3>4.1 Rekap Test Suite Integrasi</h3>
+  <table>
+    <tr><th>Test Suite</th><th>Skenario Utama</th><th>Jumlah TC</th><th>Status</th></tr>
+    <tr><td>Task API ↔ View Model</td><td>Konversi data bolak-balik antar model</td><td class="center">1</td><td class="pass center">PASS</td></tr>
+    <tr><td>Schedule API ↔ View Model</td><td>Konversi jadwal API→View→API</td><td class="center">1</td><td class="pass center">PASS</td></tr>
+    <tr><td>ClassSchedule ↔ Database</td><td>Roundtrip toMap/fromMap (simulasi DB)</td><td class="center">1</td><td class="pass center">PASS</td></tr>
+    <tr><td>Task Statistik & Filtering</td><td>Statistik multi-status + update flow</td><td class="center">2</td><td class="pass center">PASS</td></tr>
+    <tr><td colspan="2"><b>TOTAL</b></td><td class="center"><b>5</b></td><td class="pass center"><b>PASS</b></td></tr>
+  </table>
+
+  <h3>4.2 Tabel Skenario Integrasi</h3>
+  <table>
+    <tr><th>ID</th><th>Nama Skenario</th><th>Pre-condition</th><th>Langkah Uji</th><th>Expected Result</th><th>Status</th></tr>
+    <tr><td>IT-01</td><td>Konversi Task API→View→API (semua status)</td><td>3 Task API dgn status berbeda</td><td>Convert ke View → verifikasi → convert balik</td><td>Semua mapping konsisten</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-02</td><td>Schedule API→View→API roundtrip</td><td>Schedule API lengkap</td><td>Convert ke View → convert balik</td><td>title, time, date tetap sama</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-03</td><td>ClassSchedule DB roundtrip</td><td>ClassSchedule object</td><td>toMap() → fromMap() → verifikasi</td><td>Semua field identik</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-04</td><td>Statistik campuran status</td><td>5 tasks dengan status berbeda</td><td>Hitung active, completed, overdue</td><td>active=3, completed=2, overdue=1</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-05</td><td>Update status task konsisten</td><td>Task status belum_mulai</td><td>Update ke berjalan → selesai</td><td>Status & progress berubah, data lain tetap</td><td class="pass">PASS</td></tr>
+  </table>
+
+  <h3>4.3 Tabel Integration Testing (Black Box)</h3>
+  <p><b>Skenario:</b> Aliran Data dari Modul Model ke Modul Controller &nbsp;|&nbsp; <b>Tester:</b>
+    _________________________</p>
+  <table>
+    <tr><th>ID</th><th>Alur Integrasi</th><th>Prosedur Pengujian</th><th>Hasil yang Diharapkan</th><th>Status</th></tr>
+    <tr><td>IT-BB-01</td><td>Login → Dashboard → Tampil nama user</td><td>Login dengan akun valid, cek header dashboard</td><td>Nama user tampil di greeting</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-BB-02</td><td>Tambah Tugas → Dashboard statistik update</td><td>Tambah tugas baru, kembali ke dashboard</td><td>Statistik "Total" bertambah 1</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-BB-03</td><td>Selesaikan Tugas → Muncul di Riwayat</td><td>Ubah status tugas ke Selesai, buka tab Riwayat</td><td>Tugas muncul di daftar riwayat</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-BB-04</td><td>Tambah Matkul → Tampil di Jadwal Harian</td><td>Tambah matkul hari Senin, pilih tanggal Senin</td><td>Matkul tampil di jadwal harian</td><td class="pass">PASS</td></tr>
+    <tr><td>IT-BB-05</td><td>Dark Mode → Semua halaman berubah</td><td>Toggle dark mode, navigasi ke semua tab</td><td>Semua halaman pakai tema gelap</td><td class="pass">PASS</td></tr>
+  </table>
+
+  <h2>5. ANALISIS KUALITAS</h2>
+  <h3>5.1 Distribusi Jenis Test Case</h3>
+  <table>
+    <tr><th>Jenis Test Case</th><th>Unit Testing</th><th>Integration Testing</th><th>Persentase</th></tr>
+    <tr><td>Happy Path (valid input)</td><td class="center">10</td><td class="center">3</td><td class="center">65.0%</td></tr>
+    <tr><td>Error Handling (invalid input)</td><td class="center">3</td><td class="center">1</td><td class="center">20.0%</td></tr>
+    <tr><td>Boundary Value</td><td class="center">2</td><td class="center">1</td><td class="center">15.0%</td></tr>
+  </table>
+
+  <h3>5.2 Persentase Keberhasilan (Test Coverage)</h3>
+  <div class="box" style="text-align:center">
+    <div style="font-size:32px;font-weight:700;color:#16a34a">100% Pass Rate</div>
+    <p>20/20 test case berhasil | 0 failure | 0 error</p>
+  </div>
+  <p>Komponen yang di-cover: Task Model API, Schedule Model API, ClassSchedule Model, konversi antar layer, statistik &
+    filtering.</p>
+
+  <h3>5.3 Dua Test Case Paling Penting</h3>
+  <div class="box">
+    <p><b>1. TC-07: isNearDeadline() dengan format tanggal invalid</b></p>
+    <p><b>Alasan:</b> Deadline diinput sebagai string dari user/database. Jika format tidak valid (misal:
+      "bukan-tanggal"), fungsi harus <b>return false</b>, bukan <b>crash</b>. Test ini memastikan error handling bekerja
+      — tanpa ini, aplikasi bisa crash setiap kali ada data korup di database.</p>
+  </div>
+  <div class="box">
+    <p><b>2. IT-01: Konversi Task API→View→API mempertahankan data</b></p>
+    <p><b>Alasan:</b> Aplikasi ini memiliki <b>2 model berbeda</b> untuk Task (API model dan View model). Data harus
+      dikonversi bolak-balik tanpa kehilangan informasi. Test ini memastikan bahwa mapping status
+      (<code>belum_mulai↔Belum Mulai</code>, <code>selesai↔Selesai</code>) bekerja konsisten — bug di sini bisa
+      menyebabkan tugas "hilang" atau status salah.</p>
+  </div>
+
+  <h3>5.4 Mengapa Integration Testing Perlu Terpisah dari Unit Testing</h3>
+  <p>Unit testing menguji setiap fungsi secara <b>terisolasi</b>, sedangkan integration testing menguji <b>interaksi
+      antar komponen</b>. Contoh nyata: <code>Task.fromMap()</code> bisa lolos unit test (parsing benar), dan
+    <code>_convertFromApi()</code> juga lolos (konversi benar), namun saat digabungkan, mapping status
+    "<code>selesai</code>" → "<code>Selesai</code>" → "<code>selesai</code>" bisa saja gagal karena typo atau
+    case-sensitivity. Integration testing menangkap bug di <b>antarmuka</b> antar modul yang tidak terlihat saat diuji
+    sendiri-sendiri.</p>
+
+  <h3>5.5 Potensi Bug yang Lolos Unit Test tapi Tertangkap Integration Test</h3>
+  <p>Pada konversi <code>Schedule</code>, jika <code>endTime</code> null di API model, fungsi
+    <code>_calculateEndTime()</code> akan menghitung otomatis (+1 jam). Unit test memverifikasi kalkulasi ini benar
+    secara terisolasi. Namun integration test IT-02 menemukan bahwa saat <b>alur lengkap</b> dijalankan (API →
+    convertFromApi → View model), nilai endTime yang dihitung harus <b>konsisten</b> dengan yang ditampilkan di UI.
+    Tanpa integration test, inkonsistensi antara kalkulasi di model dan di controller bisa lolos.</p>
+
+  <h2>6. KESIMPULAN</h2>
+  <p>Pengujian perangkat lunak aplikasi <b>ScheduleList</b> telah berhasil dilaksanakan:</p>
+  <ul style="margin:8px 0 8px 20px">
+    <li><b>20 dari 20 test case</b> lulus (100% pass rate)</li>
+    <li>Tidak ditemukan bug atau defect pada versi saat ini</li>
+    <li>Sistem memenuhi semua spesifikasi fungsional</li>
+    <li>Konsistensi data terjaga pada semua skenario konversi antar model</li>
+    <li>Error handling berfungsi baik untuk input invalid dan edge case</li>
+  </ul>
+
+  <div class="box" style="text-align:center;background:#f0fdf4;border-color:#22c55e">
+    <b>Perangkat lunak dinyatakan LAYAK untuk dilanjutkan ke tahap System Testing.</b>
+  </div>
+
+  <div style="margin-top:40px;display:flex;justify-content:space-between">
+    <div style="text-align:center;width:45%">
+      <p>Mengetahui,</p>
+      <p>Dosen Pengampu</p><br><br>
+      <p>(_________________________)</p>
+    </div>
+    <div style="text-align:center;width:45%">
+      <p>Dibuat oleh,</p>
+      <p>Mahasiswa</p><br><br>
+      <p>(_________________________)</p>
+    </div>
+  </div>
+
+</body>
+
+</html>
